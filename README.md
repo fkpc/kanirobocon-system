@@ -1,6 +1,6 @@
-# kanirobocon-system / カニロボコン運営システム
+# kanirobocon-system / かにロボコン運営システム
 
-カニロボコン得点システム、クライアント側 for iPad / PC
+かにロボコン得点システム、クライアント側 for iPad / PC
 
 ## 起動方法
 

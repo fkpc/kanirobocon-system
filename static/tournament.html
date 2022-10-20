@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta charset='utf-8'/>
-<title>カニロボコン 決勝トーナメント</title>
+<title>かにロボコン 決勝トーナメント</title>
 <meta property="og:image" content="kanirobocon-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
 <meta name="format-detection" content="telephone=no">
@@ -94,7 +94,7 @@ const init = () => {
 		}
 
 		const matchdata = getMatch(Settings.getNumberOfMatch(category)); //category == "T" ? match.m8 : match.m4;
-		const title = Settings.getTitle() + "決勝 " + Settings.getGroup(category); // "カニロボコン決勝 " + (category == "T" ? "エントリー部門" : "歩行部門")
+		const title = Settings.getTitle() + "決勝 " + Settings.getGroup(category); // "かにロボコン決勝 " + (category == "T" ? "エントリー部門" : "歩行部門")
 		drawTournament(canvas, title, finalist, matchdata, [])
 
 		const dt = 3 * 1000 // 3sec

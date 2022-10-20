@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<meta charset='utf-8'/>
+<meta http-equiv="content-language" content="ja">
+<title>カニロボコン 得点記録システム</title>
+<meta property="og:image" content="kanirobocon-r2.png">
+<link rel="apple-touch-icon" href="kanirobocon-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+<meta name="format-detection" content="telephone=no">
+<head>
+<script src=lib/fukuno.js></script>
+<script src=minidb.js></script>
+<script>
+window.onload = function() {
+	MiniDB.load("entry", function(csv) {
+		MiniDB.load("register", function(register) {
+			console.log(register);
+			if (register.length == 0) {
+				MiniDB.create("register", "entryid,datetime", function(res) {
+				});
+			}
+//			dump(register);
+			
+			var sb = "<table>";
+			sb += "<tr><th>ゼッケン</th><th>部門</th><th>チーム名</th><th></th><th>メンバー</th><th>クラブ</th></tr>";
+			for (var i = 1; i < csv.length; i++) {
+				var d = csv[i];
+				var kana = function(s) {
+					return s.length > 1 ? "(" + s + ")" : "";
+				};
+				var d2 = [
+					d[0],
+					// d[1] == "T" ? "低" : "高",
+					d[1] == "T" ? "エ" : "歩",
+					d[2],
+					"<button id=btn" + d[0] + ">エントリー</button>",
+					d[3] + kana(d[4]) + (d[6] == "" ? "" : " &amp; " + d[6] + kana(d[7])),
+					d[9],
+				];
+				sb += "<tr>";
+				for (var j = 0; j < d2.length; j++)
+					sb += "<td>" + d2[j] + "</td>";
+				sb += "</tr>";
+			}
+			sb += "</table>";
+			main.innerHTML = sb;
+			
+			for (var i = 1; i < csv.length; i++) {
+				var btn = get("btn" + csv[i][0]);
+				for (var j = 1; j < register.length; j++) {
+					if (register[j][0] == csv[i][0]) {
+						btn.style.backgroundColor = "red";
+						btn.registerid = csv[i][0];
+					}
+				}
+				
+				btn.onclick = function() {
+					var entryid = this.id.substring(3);
+					var d = csv[entryid];
+					var btn = this;
+					if (this.style.backgroundColor != "red") {
+						MiniDB.set("register", [ entryid, new Date().getTime() ].join(","), function(res) {
+							btn.style.backgroundColor = "red";
+							btn.registerid = entryid;
+						});
+					} else {
+						MiniDB.remove("register", btn.registerid, function(res) {
+							btn.style.backgroundColor = "white";
+							btn.registerid = null;
+						});
+					}
+				};
+			}
+		});
+	});
+};
+</script>
+<style>
+body {
+}
+table {
+	border-collapse: collapse;
+}
+td, th {
+	border: 1px solid black;
+	height: 1.8em;
+	padding: 0em 0.2em;
+}
+a {
+	color: black !important;
+	text-decoration: none;
+}
+#debug {
+	text-align: left;
+}
+</style>
+</head>
+<body>
+
+<h2><a href=menu.html>カニロボコン 得点システム</a></h1>
+<div id=main></div>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!-- (c)taisukef CC BY  http://fukuno.jig.jp/ -->
+<html>
+<head>
+<meta charset='utf-8'/>
+<title>カニロボコン 決勝トーナメント</title>
+<meta property="og:image" content="kanirobocon-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+<meta name="format-detection" content="telephone=no">
+<script src="lib/fukuno.js"></script>
+<script src="minidb.js"></script>
+<script src="match.js"></script>
+<script type="module">
+import { drawTournament } from "./drawTournament.js";
+import { Settings } from "./Settings.js";
+
+/* -- > match.js
+// トーナメント 10人の場合と26人の場合 -> アルゴリズム化したい、初戦で2の乗数にする
+const match = {
+	m8: {
+		series: [ 2, 8, 6, 4, 3, 5, 7, 1 ],
+		match: [
+			[ [ 2, 8, -1 ], [ 6, 4, -2 ], [ 3, 5, -3 ], [ 7, 1, -4 ], ], // ベスト4決定
+			[ [ -1, -2, -5 ], [ -3, -4, -6 ], ], // 準決勝
+			[ [ -5, -6, -7 ] ] // 決勝
+		]
+	},
+	m4: {
+		series: [ 2, 4, 3, 1 ],
+		match: [
+			[ [ 2, 4, -1 ], [ 3, 1, -2 ], ], // 準決勝
+			[ [ -1, -2, -3 ] ] // 決勝
+		]
+	},
+	m10: {
+		series: [ 1, 9, 8, 5, 4, 3, 6, 7, 10, 2 ],
+		match: [
+			[ [ 9, 8, -1 ], [ 7, 10, -2 ], ], // ベスト8決定
+			[ [ 1, -1, -3 ], [ 5, 4, -4 ], [ 3, 6, -5 ], [ -2, 2, -6 ], ], // ベスト4決定
+			[ [ -3, -4, -7 ], [ -5, -6, -8 ], ], // 準決勝
+			[ [ -7, -8, -9 ] ] // 決勝
+		]
+	},
+	m26: {
+		series: [
+			1, 17, 16, 12, 21, 6, 7, 26, 24, 9, 11, 22, 4, 
+			2, 18, 15, 13, 20, 5, 8, 25, 23, 10, 14, 19, 3
+		],
+		match: [
+			[ [ 17, 16, -1 ], [ 12, 21, -2 ], [ 7, 26, -3 ], [ 24, 9, -4 ], [ 11, 22, -5 ], [ 18, 15, -6 ], [ 13, 20, -7 ], [ 8, 25, -8 ], [ 23, 10, -9 ], [ 14, 19, -10 ], ], // ベスト16決定
+			[ [ 1, -1, -11 ], [ -2, 6, -12 ], [ -3, -4, -13 ], [ -5, 4, -14 ], [ 2, -6, -15 ], [ -7, 5, -16], [ -8, -9, -17 ], [ -10, 3, -18 ], ], // ベスト8決定
+			[ [ -11, -12, -19 ], [ -13, -14, -20 ], [ -15, -16, -21 ], [ -17, -18, -22 ], ], // ベスト4決定
+			[ [ -19, -20, -23 ], [ -21, -22, -24 ], ], // 準決勝
+			[ [ -23, -24, -25 ] ] // 決勝
+		]
+	}
+};
+const getMatch = (n) => {
+	if (n == 4) {
+		return match.m4;
+	} else if (n == 8) {
+		return match.m8;
+	} else if (n == 10) {
+		return match.m10;
+	} else if (n == 26) {
+		return match.m26;
+	} else {
+		throw new Error("unsupported n match");
+	}
+};
+*/
+
+const AUTO_RELOAD = true;
+var autoflg = false;
+var category = "T";
+
+window.onload = () => {
+	init();
+};
+
+const init = () => {
+	const hash = document.location.hash;
+	if (hash.length > 1) {
+		category = hash.substring(1, 2);
+		autoflg = hash.charAt(2) == "A";
+	}
+
+	MiniDB.load("finalist-" + category, function(finalist) {
+		//console.log(finalist)
+		if (finalist.length <= 2) {
+			alert("決勝トーナメントデータがありません");
+			document.location.href = "menu.html";
+			return;
+		}
+
+		const matchdata = getMatch(Settings.getNumberOfMatch(category)); //category == "T" ? match.m8 : match.m4;
+		const title = Settings.getTitle() + "決勝 " + Settings.getGroup(category); // "カニロボコン決勝 " + (category == "T" ? "エントリー部門" : "歩行部門")
+		drawTournament(canvas, title, finalist, matchdata, [])
+
+		const dt = 3 * 1000 // 3sec
+		let cnt = 0
+		const f = function() {
+			cnt++;
+			if (autoflg && cnt > 3) {
+				if (autoflg && category == "K") {
+					window.location.href = "sponsor.html#A";
+					return;
+				}
+				window.location.href = "tournament.html#" + (category == "T" ? "K" : "T") + "A";
+				init();
+				return;
+			} else {
+				MiniDB.load("result2", function(result) {
+					drawTournament(canvas, title, finalist, matchdata, result)
+					//console.log("result", result);
+				});
+			}
+			if (AUTO_RELOAD) {
+				setTimeout(f, dt);
+			}
+		};
+		f();
+	});
+};
+
+</script>
+<style>
+body {
+	margin: 0px;
+	box-sizing: border-box; /* width include border */
+	-webkit-text-size-adjust: none; /* for iPhone */
+	background-color: black;
+}
+#debug {
+	text-align: left;
+	color: white;
+}
+#canvas {
+	display: block;
+	width: 100%;
+	height: 100px;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+</html>

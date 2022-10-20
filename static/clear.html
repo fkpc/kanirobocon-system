@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<meta charset='utf-8'/>
+<meta http-equiv="content-language" content="ja">
+<title>カニロボコン 得点記録システム</title>
+<meta property="og:image" content="kanirobocon-r2.png">
+<link rel="apple-touch-icon" href="kanirobocon-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+<meta name="format-detection" content="telephone=no">
+<head>
+<script src=lib/fukuno.js></script>
+<script src=minidb.js></script>
+<script>
+window.onload = function() {
+	btnentry.onclick = function() {
+		if (confirm("エントリーデータを削除しますか？（戻せません）")) {
+			MiniDB.del("register", function(res) {
+			});
+		}
+	};
+	btnmatch1.onclick = function() {
+		if (confirm("予選対戦表データを削除しますか？（戻せません）")) {
+			MiniDB.del("match1", function(res) {
+//				alert(res);
+			});
+		}
+	};
+	btnresult1.onclick = function() {
+		if (confirm("予選対戦結果データを削除しますか？（戻せません）")) {
+			MiniDB.del("result1", function(res) {
+//				alert(res);
+				MiniDB.create("result1", "match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
+//					alert(res);
+				});
+			});
+		}
+	};
+	btnmatch2.onclick = function() {
+		if (confirm("決勝対戦表データを削除しますか？（戻せません）")) {
+			MiniDB.del("match2", function(res) {
+//				alert(res);
+				MiniDB.del("finalist-T", function(res) {
+	//				alert(res);
+					MiniDB.del("finalist-K", function(res) {
+	//					alert(res);
+					});
+				});
+			});
+		}
+	};
+	btnresult2.onclick = function() {
+		if (confirm("決勝対戦結果データを削除しますか？（戻せません）")) {
+			MiniDB.del("result2", function(res) {
+//				alert(res);
+				MiniDB.create("result2", "match2id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
+//					alert(res);
+				});
+			});
+		}
+	};
+	//
+	if (window.btnreset) {
+		btnreset.onclick = function() {
+			if (confirm("参加者を含む、全データを初期化しますか？（戻せません）")) {
+				MiniDB.del("entry", function(res) {
+					MiniDB.create("entry", "id,category,teamname,name1,kana1,school1,name2,kana2,school2,club", function(res) {
+						MiniDB.del("register", function(res) {
+							MiniDB.create("register", "entryid,datetime", function(res) {
+								MiniDB.del("match1", function(res) {
+									MiniDB.del("result1", function(res) {
+										MiniDB.create("result1", "match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
+											MiniDB.del("match2", function(res) {
+												MiniDB.del("finalist-T", function(res) {
+													MiniDB.del("finalist-K", function(res) {
+														MiniDB.del("result2", function(res) {
+															MiniDB.create("result2", "match2id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
+															});
+														});
+													});
+												});
+											});
+										});
+									});
+								});
+							});
+						});
+					});
+				});
+			}
+		};
+	}
+};
+</script>
+<style>
+body {
+	text-align: center;
+}
+#box {
+	text-align: left;
+	display: inline-block;
+	margin: 10vw;
+	background-color: #f1f1f1;
+	color: black;
+	padding: 10vw;
+}
+button {
+	margin-bottom: 0.5em;
+}
+a {
+	color: black !important;
+	text-decoration: none;
+}
+input {
+	width: 12em;
+}
+.name {
+	display: inline-block;
+	width: 4em;
+}
+</style>
+</head>
+<body>
+
+<div id=box>
+<h2><a href=menu.html>カニロボコン 得点システム</a></h1>
+<button id=btnentry>エントリー受付 データ削除</button><br>
+<button id=btnmatch1>予選対戦表 データ削除</button><br>
+<button id=btnresult1>予選対戦結果 データ削除</button><br>
+<button id=btnmatch2>決勝対戦表 データ削除</button><br>
+<button id=btnresult2>決勝対戦結果 データ削除</button><br>
+<!--
+	<hr>
+<button id=btnreset>全データ初期化（戻せません）</button><br>
+-->
+<hr>
+<a href=menu.html>戻る</a><br>
+
+</div>
+
+</body>
+</html>

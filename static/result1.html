@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<meta charset='utf-8'/>
+<meta http-equiv="content-language" content="ja">
+<title>カニロボコン得点記録システム</title>
+<meta property="og:image" content="kanirobocon-r2.png">
+<link rel="apple-touch-icon" href="kanirobocon-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+<meta name="format-detection" content="telephone=no">
+<head>
+<script src=lib/fukuno.js></script>
+<script src=minidb.js></script>
+<script src=match.js></script>
+<script type="module">
+import { Settings } from "./Settings.js";
+
+const MAX_ENTRY_T = Settings.getNumberOfMatch("T");
+const MAX_ENTRY_K = Settings.getNumberOfMatch("K");
+
+window.onload = function() {
+	title.textContent = Settings.getTitle() + " 予選対戦結果";
+
+	MiniDB.load("entry", function(entry) {
+		MiniDB.load("register", function(register) {
+			MiniDB.load("result1", function(result1) {
+				show("T", "tblt", entry, register, result1);
+				show("K", "tblk", entry, register, result1);
+				
+				make.onclick = function() {
+					makeFinalist("T", entry);
+					makeFinalist("K", entry);
+				};
+			});
+		});
+	});
+};
+var show = function(category, tablec, entry, register, result1) {
+	var list = [];
+	var getEntry = function(id) {
+		for (var i = 1; i < entry.length; i++)
+			if (entry[i][0] == id)
+				return entry[i];
+		return null;
+	};
+	var getResult = function(id, left) {
+		for (var i = 1; i < result1.length; i++) {
+			var r = result1[i];
+//		match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2
+			if (left) {
+				if (r[2] == id)
+					return [ r[4], parseInt(r[4]), r[6] ];
+			} else {
+				if (r[3] == id)
+					return [ r[5], parseInt(r[5]), r[7] ];
+			}
+		}
+		return [ "-", 0, "-" ];
+	};
+	for (var i = 1; i < register.length; i++) {
+		var id = register[i][0];
+		var p = getEntry(id);
+		if (p == null || p[1] != category)
+			continue;
+		
+		var left = getResult(id, true);
+		var right = getResult(id, false);
+		list.push([
+			id,
+			p[2],
+			p[9],
+			null,
+			left[1] + right[1],
+			left[0] + " / " + right[0],
+			left[2] + " / " + right[2]
+		]);
+	}
+	var parseTime = function(time) {
+		time = time.trim();
+		if (time.length == 0 || time == "-")
+			return 180;
+		var t = time.split(":");
+		return parseInt(t[0]) * 60 + parseInt(t[1]);
+	};
+	var getTimes = function(time) {	
+		var t = time.split("/");
+		var n = 0;
+		var res = [ parseTime(t[0]), parseTime(t[1]) ];
+		var sum = 0;
+		for (var i = 0; i < res.length; i++) {
+			if (res[i] < 180) {
+				n++;
+			}
+			sum += res[i];
+		}
+		res.push(n);
+		res.push(sum);
+		return res;
+	};
+	list.sort(function(a, b) {
+		var dp = b[4] - a[4]; // ポイント順
+		if (dp != 0)
+			return dp;
+		var timea = getTimes(a[6]);
+		var timeb = getTimes(b[6]);
+		dp = timeb[2] - timea[2]; // タイム計測回数は多いほうがいい
+		if (dp != 0)
+			return dp;
+		const dt = timea[3] - timeb[3] // タイムは速いほうがいい
+		if (dt != 0)
+			return dt
+		return a[0] - b[0] // どちらも同点の場合はゼッケン順
+	});
+
+	var sb = "<h2>" + (category == "T" ? "エントリー部門" : "歩行部門") + "</h2><table>";
+	sb += "<tr><th>順位</th><th>ゼッケン</th><th>チーム名</th><th>クラブ</th><th>決勝</th><th>ポイント</th><th>左 / 右</th><th>タイム</th></tr>";
+	var max = category == "T" ? MAX_ENTRY_T : MAX_ENTRY_K;
+	for (var k = 0; k < list.length; k++) {
+		sb += "<tr><th>" + (k + 1) + "位</th>";
+		var d2 = list[k];
+		for (var j = 0; j < d2.length; j++) {
+			if (j != 3) {
+				sb += "<td>" + d2[j] + "</td>";
+			} else {
+				sb += "<td><select id=sel" + category + d2[0] + ">";
+				sb += "<option>-</option>";
+				for (var i = 0; i < max; i++) {
+					sb += "<option";
+					if (i == k) {
+						sb += " selected";
+					}
+					sb += ">" + (i + 1) + "</option>";
+				}
+				sb += "</select></td>";
+			}
+		}
+		sb += "</tr>";
+	}
+	sb += "</table>";
+	get(tablec).innerHTML = sb;
+};
+var makeFinalist = function(category, entry) {
+	var getEntry = function(id) {
+		for (var i = 1; i < entry.length; i++)
+			if (entry[i][0] == id)
+				return entry[i];
+		return null;
+	};
+
+	var max = category == "T" ? MAX_ENTRY_T : MAX_ENTRY_K; // -> 2019 全員通過させる
+	var cat = category == "T" ? "エントリー部門" : "歩行部門";
+	var list = [];
+	for (var i = 1; i < entry.length; i++) {
+		var e = entry[i];
+		if (e[1] != category)
+			continue;
+		
+		var c = get("sel" + category + e[0]);
+		if (c != null) {
+			var v = c.value;
+			if (v != "-") {
+				list.push([ v, e[0] ]);
+			}
+		}
+	}
+	
+	var s = [];
+	s.push(["id", "entryid", "name" ]);
+	for (var i = 0; i < list.length; i++) {
+		var n = i + 1
+		var miss = true;
+		var id = null;
+		for (var j = 0; j < list.length; j++) {
+			if (list[j][0] == n) {
+				miss = false;
+				id = list[j][1];
+				break;
+			}
+		}
+		if (miss) {
+			alert(cat + " エントリー" + n + "がありません。");
+			return;
+		}
+		s.push([ n, id, getEntry(id)[2] ]);
+	}
+	if (category == "T" && list.length != MAX_ENTRY_T) {
+		alert(cat + " エントリー数が" + MAX_ENTRY_T + "ではありません。");
+		return;
+	} else if (category == "K" && list.length != MAX_ENTRY_K) {
+		alert(cat + " エントリー数が" + MAX_ENTRY_K + "ではありません。");
+		return;
+	}
+	MiniDB.create("finalist-" + category, MiniDB.serialize(s), function(res) {
+		if (res == 1) {
+			alert(cat + " 決勝トーナメントを生成しました");
+		} else {
+			alert(cat + " 生成に失敗しました。リトライしてください");
+		}
+	});
+};
+</script>
+<style>
+body {
+}
+table {
+	border-collapse: collapse;
+}
+td, th {
+	border: 1px solid black;
+	height: 1.8em;
+	padding: 0em 0.2em;
+}
+td:nth-child(2), td:nth-child(5), td:nth-child(6), td:nth-child(7) {
+	text-align: center;
+}
+a {
+	color: black !important;
+	text-decoration: none;
+}
+#make {
+	margin-top: 2em;
+}
+#debug {
+	text-align: left;
+}
+</style>
+</head>
+<body>
+
+<h2><a href=menu.html id=title>カニロボコン 予選対戦結果</a></h1>
+<div id=tblt></div>
+<div id=tblk></div>
+
+<button id=make>決勝トーナメント作成</button>
+
+</body>
+</html>

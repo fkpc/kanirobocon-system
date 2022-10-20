@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<meta charset='utf-8'/>
+<meta http-equiv="content-language" content="ja">
+<title>カニロボコン 決勝対戦表</title>
+<meta property="og:image" content="kanirobocon-r2.png">
+<link rel="apple-touch-icon" href="kanirobocon-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+<meta name="format-detection" content="telephone=no">
+<head>
+<script src=lib/fukuno.js></script>
+<script src=minidb.js></script>
+<script src=match.js></script>
+<script type="module">
+import { Settings } from "./Settings.js";
+const MATCH_ONCE = false
+
+
+const matchT = getMatch(Settings.getNumberOfMatch("T")); // match.m8;
+const matchK = getMatch(Settings.getNumberOfMatch("K")); // match.m4;
+
+var makeMatch2 = function() {
+	MiniDB.load("finalist-T", function(finalistt) {
+		if (finalistt.length == 0) {
+			alert("決勝トーナメントが生成されていません。");
+			document.location.href = "menu.html";
+		}
+		MiniDB.load("finalist-K", function(finalistk) {
+			if (finalistk.length == 0) {
+				alert("決勝トーナメントが生成されていません。");
+				document.location.href = "menu.html";
+			}
+			//console.log(finalistt)
+			//console.log(finalistk)
+			//console.log(finalistt.length, finalistk.length); // 11, 27
+			
+			const match2 = []
+			match2.push([ "id", "category", "entry1id", "entry2id", "table", "series" ])
+
+			var n = 1;
+			
+			const tmat = {}
+			const kmat = {}
+
+			const getTID = function(num) {
+				if (num < 0)
+					return -tmat[num]
+				return finalistt[num][1]
+			}
+			const getKID = function(num) {
+				if (num < 0)
+					return -kmat[num]
+				const res = finalistk[num][1]
+				return res
+			}
+			let ma = null;
+			let cntt = 0;
+			//let cntk = -1;
+			let cntk = 0;
+			for (;;) {
+				// エントリー部門
+				if (cntt >= 0 && cntt < matchT.match.length) {
+					ma = matchT.match[cntt]
+					for (let i = 0; i < ma.length; i++) {
+						const m = ma[i]
+						match2.push([ n, "T", getTID(m[0]), getTID(m[1]), 1, n ]);
+						tmat[m[2]] = n
+						n++
+					}
+				}
+				// 歩行部門
+				if (cntk >= 0 && cntk < matchK.match.length) {
+					ma = matchK.match[cntk]
+					for (let i = 0; i < ma.length; i++) {
+						const m = ma[i]
+						match2.push([ n, "K", getKID(m[0]), getKID(m[1]), 1, n ]);
+						kmat[m[2]] = n
+						n++
+					}
+				}
+				// エントリー部門、逆
+				if (cntt >= 0 && cntt < matchT.match.length) {
+					ma = matchT.match[cntt]
+					for (let i = 0; i < ma.length; i++) {
+						const m = ma[i]
+						match2.push([ n, "T", getTID(m[1]), getTID(m[0]), 1, n ]);
+						tmat[m[2]] = n
+						n++
+					}
+				}
+				// 歩行部門、逆
+				if (cntk >= 0 && cntk < matchK.match.length) {
+					ma = matchK.match[cntk]
+					for (let i = 0; i < ma.length; i++) {
+						const m = ma[i]
+						match2.push([ n, "K", getKID(m[1]), getKID(m[0]), 1, n ]);
+						kmat[m[2]] = n
+						n++
+					}
+				}
+				cntt++
+				cntk++
+				if (cntk == matchK.match.length)
+					break
+			}
+
+			//console.log(match2)
+			
+			MiniDB.del("match2", function(res) {
+				
+				MiniDB.create("match2", MiniDB.serialize(match2), function(res) {
+					if (res != 1) {
+						alert("生成に失敗しました。再作成してください。");
+					//	alert(res);
+					} else {
+						showMatch2(match2);
+					}
+				});
+		//	dump(match1);
+		
+			});
+			
+		});
+	});
+};
+var showMatch2 = function(match2) {
+	MiniDB.load("result2", function(result2) {
+		MiniDB.load("entry", function(entry) {
+		//	dump(match2);
+		//	return;
+			var getEntry = function(id) {
+				for (var i = 1; i < entry.length; i++) {
+					if (entry[i][0] == id)
+						return entry[i];
+				}
+				return [ 0, "-", "-", "-", "-", "", "", "", "", "-" ];
+			};
+	
+			var getResult = function(mid) {
+				for (var i = 1; i < result2.length; i++) {
+					var r = result2[i];
+					if (r[0] == mid)
+						return r;
+				}
+				return null;
+			}
+			const getWinner = function(mid) {
+				const r1 = getResult(mid)
+				if (!r1)
+					return -mid
+				const id1 = r1[2]
+				const id2 = r1[3]
+				
+				/*
+				const parseInt = (s) => {
+					alert(s);
+					console.log(s);
+					return s;
+				}
+				*/
+				if (MATCH_ONCE) {
+					const p1 = parseInt(r1[4])
+					const p2 = parseInt(r1[5])
+					return p1 > p2 ? id1 : id2
+				} else {
+					for (let i = 1; i < result2.length; i++) {
+						var r2 = result2[i]
+						if (r2[2] == id2 && r2[3] == id1) {
+							const p1 = parseInt(r1[4]) + parseInt(r2[5]);
+							const p2 = parseInt(r1[5]) + parseInt(r2[4]);
+							return p1 > p2 ? id1 : id2
+						}
+					}
+				}
+				return -mid
+			}
+			//console.log(match2)
+			
+			var sb = "<table>";
+			sb += "<tr><th>試合</th><th>部</th><th>チーム名</th><th>クラブ</th><th>ポイント</th><th>チーム名</th><th>クラブ</th></tr>";
+			for (var k = 1; k < match2.length; k++) {
+				var d = match2[k];
+				
+				/*
+				var r = getResult(d[0]);
+				if (r) {
+					d[2] = r[2];
+					d[3] = r[3];
+				}
+				*/
+				
+				var getEntryName = function(id) {
+					var e = getEntry(id);
+					return e[2] + (e[0] == 0 ? "" : " (" + e[0] + ")");
+				};
+				var getEntryClub = function(id) {
+					var e = getEntry(id);
+					return e[9]; // + (e[0] == 0 ? "" : " (" + e[0] + ")");
+				};
+				var id1 = d[2];
+				var id2 = d[3];
+				var level = d[4];
+				var name1 = null;
+				var name2 = null;
+				var club1 = "";
+				var club2 = "";
+				const chkMinus = (s) => {
+					if (s == null) {
+						return false;
+					}
+					//console.log(s, typeof s, typeof s == "string" ? s.charAt(0) : "not s")
+					if (typeof s == "string") {
+						return s[0] == "-";
+					} else if (typeof s == "number") {
+						return s < 0;
+					}
+				};
+				
+				//console.log(id1, id2, typeof id1, typeof id2);
+				//if (id1 < 0) {
+				if (chkMinus(id1)) {
+					id1 = getWinner(-parseInt(id1))
+				}
+				//if (id1 > 0) {
+				if (!chkMinus(id1)) {
+					name1 = getEntryName(id1);
+					club1 = getEntryClub(id1);
+				} else {
+					name1 = "試合" + -parseInt(id1) + "の勝者";
+				}
+				//if (id2 < 0) {
+				if (chkMinus(id2)) {
+					id2 = getWinner(-parseInt(id2))
+				}
+				//if (id2 > 0) {
+				if (!chkMinus(id2)) {
+					name2 = getEntryName(id2);
+					club2 = getEntryClub(id2);
+				} else {
+					name2 = "試合" + -parseInt(id2) + "の勝者";
+				}
+				var d2 = [
+					"<a href=score.html#2," + d[0] + ">" + d[0] + "</a>",
+					//d[1] == "T" ? "低" : "高",
+					d[1] == "T" ? "エ" : "歩",
+					name1,
+					club1,
+					"/",
+					name2,
+					club2,
+				];
+				sb += "<tr>";
+				for (var j = 0; j < d2.length; j++) {
+					if (j == 4) {
+						var p1 = "-";
+						var p2 = "-";
+						for (var i = 1; i < result2.length; i++) {
+							var r = result2[i];
+							if (r[2] == id1 && r[3] == id2) {
+								p1 = r[4];
+								p2 = r[5];
+							}
+						}
+						sb += "<td>" + p1 + " / " + p2 + "</td>";
+					} else {
+						sb += "<td>" + d2[j] + "</td>";
+					}
+				}
+				sb += "</tr>";
+			}
+			sb += "</table>";
+			get("table").innerHTML = sb;
+		});
+	});
+};
+
+window.onload = function() {
+	MiniDB.load("match2", function(match2) {
+		//console.log(match2, match2.length);
+		if (match2.length < 2) {
+		//if (true) {
+			console.log("makeMatch2!!");
+			makeMatch2();
+		} else {
+			showMatch2(match2);
+		}
+	/*
+		if (true) {
+			makeMatch2();
+		} else {
+			showMatch2(match2);
+		}
+		*/
+	});
+};
+</script>
+<style>
+body {
+	text-align: center;
+}
+table {
+	border-collapse: collapse;
+	display: inline-block;
+	x-width: 100%;
+}
+#table1, #table2, #table3 {
+	display: inline-block;
+	width: 30%;
+	padding: 1%;
+}
+td, th {
+	border: 1px solid black;
+	height: 1.8em;
+	padding: 0em 0.2em;
+}
+td:first-child {
+	text-align: center;
+	font-weight: bold;
+}
+td:nth-child(2), td:nth-child(4) {
+	text-align: center;
+}
+#debug {
+	text-align: left;
+}
+h1 {
+}
+a {
+	color: black !important;
+	text-decoration: none;
+}
+h1 {
+	margin: 0.1em;
+	padding: 0;
+}
+h2 {
+	padding: .0em 0;
+	margin: 0;
+}
+</style>
+</head>
+<body>
+
+<h1><a href=menu.html>カニロボコン 決勝対戦表</a></h1>
+<div id=table></div>
+
+
+</body>
+</html>

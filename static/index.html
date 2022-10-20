@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<meta charset='utf-8'/>
+<meta http-equiv="content-language" content="ja">
+<title>カニロボコン 得点記録システム</title>
+<meta property="og:image" content="kanirobocon-r2.png">
+<link rel="apple-touch-icon" href="kanirobocon-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+<meta name="format-detection" content="telephone=no">
+<script src="https://unpkg.com/xxhash-wasm/umd/xxhash-wasm.js"></script>
+<head>
+<script>"use strict";
+window.onload = function() {
+	btn.onclick = async function() {
+		const { h32, h64 } = await xxhash()
+		const hashedid = h64(inputid.value.toLowerCase()).toString(16)
+		if (hashedid != "93cd62db80be1e79") {
+			alert("ID / パスワードが違います");
+			return;
+		}
+		localStorage.setItem("key", inputpw.value);
+//		alert(localStorage.getItem("key"));
+		window.location.href = "menu.html";
+//		window.open("menu.html");
+	};
+};
+</script>
+<style>
+body {
+	text-align: center;
+	font-family: sans-serif;
+}
+#box {
+	display: inline-block;
+	margin: 10vw;
+	background-color: #f1f1f1;
+	color: black;
+	padding: 10vw;
+}
+input {
+	width: 12em;
+}
+.name {
+	display: inline-block;
+	width: 4em;
+}
+</style>
+</head>
+<body>
+
+<div id=box>
+<span class=name>ID</span> <input type=text id=inputid><br>
+<span class=name>PW</span> <input type=password id=inputpw><br>
+<button id=btn>ログイン</button><br>
+</div>
+
+</body>
+</html>

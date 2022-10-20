@@ -1,0 +1,76 @@
+<!DOCTYPE html><html><meta charset='utf-8'>
+<title>カニロボコン スポンサー</title>
+<meta property="og:image" content="kanirobocon-r2.png">
+<link rel="apple-touch-icon" href="kanirobocon-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+<meta name="format-detection" content="telephone=no">
+<script type="module">
+import { CSV } from "https://code4sabae.github.io/js/CSV.js";
+
+const rnd = (n) => {
+	return Math.floor(Math.random() * n);
+};
+const shuffle = (array) => {
+	for (let i = 0; i < array.length; i++) {
+		const n = rnd(array.length);
+		const tmp = array[i];
+		array[i] = array[n];
+		array[n] = tmp;
+	}
+};
+
+window.onload = async () => {
+	const hash = document.location.hash;
+	if (hash.length > 1) {
+		const autoflg = hash.charAt(1) == "A";
+		if (autoflg) {
+			setTimeout(() => {
+				window.location.href = "tournament.html#TA";
+			}, 3000);
+		}
+	}
+
+	const csv = CSV.decode(await (await fetch("sponsor.csv")).text());
+	const json = CSV.toJSON(csv);
+
+	// セイコスポンサーは出現確率を倍に
+	for (let i = json.length - 1; i >= 0; i--) {
+		if (json[i].rank == "seiko") {
+			json.push(json[i]);
+			//json.push(json[i]);
+		}
+	}
+
+	const show = () => {
+		document.body.innerHTML = "";
+
+		// まぜながら表示
+		for (let j = 0; j < 4; j++) {
+			shuffle(json);
+			for (let i = 0; i < json.length; i++) {
+				const img = new Image();
+				img.src = json[i].img;
+				document.body.appendChild(img);
+			}
+		}
+	};
+	show();
+	setInterval(show, 15 * 1000);
+};
+</script>
+<style>
+body {
+	overflow: hidden;
+	text-align: center;
+}
+img {
+	width: 32vw;
+	margin: 1vw 0 1vw 0;
+}
+</style>
+</head>
+<body>
+</body>
+</html>

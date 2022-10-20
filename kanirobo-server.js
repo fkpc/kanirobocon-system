@@ -1,7 +1,7 @@
 import { serveAPI } from "https://js.sabae.cc/wsutil.js";
 import { minidb } from "./minidb.js";
 
-const password = await Deno.readTextFile("password.txt");
+const password = (await Deno.readTextFile("password.txt")).trim();
 
 const fromURLSearchParams = (param) => {
   const p = new URLSearchParams(param);

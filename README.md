@@ -6,7 +6,7 @@
 
 [Deno](https://deno.land/)をインストールし下記で実行
 ```bash
-deno run -A kanirobo-server
+deno run -A kanirobo-server.js
 ```
 - [http://localhost:8000/](http://localhost:8000/)を開く
 

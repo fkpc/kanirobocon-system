@@ -8,7 +8,15 @@
 ```bash
 deno run -A kanirobo-server.js
 ```
-- [http://localhost:8000/](http://localhost:8000/)を開く
+- [http://[::]:8000/](http://[::]:8000/)を開く
+
+## 起動オプション
+
+IPv4でポート8888を使用して起動
+```bash
+deno run -A kanirobo-server.js --ipv4 8888
+```
+- [http://[::]:8000/](http://[::]:8000/)を開く
 
 ## ID/パスワード
 
@@ -17,4 +25,4 @@ deno run -A kanirobo-server.js
 
 ## 参加者設定
 
-data/entry.csv に、参加者情報を記入する
+data/entry.csv に、参加者情報を記入してください

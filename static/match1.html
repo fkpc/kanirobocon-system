@@ -302,6 +302,8 @@ window.onload = function() {
 				
 				if (match1.length == 0) { // 作成
 					makeMatch1();
+					MiniDB.create("result1", "match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
+					});
 				}
 				showMatch1();
 			});

@@ -115,6 +115,8 @@ var makeMatch2 = function() {
 						alert("生成に失敗しました。再作成してください。");
 					//	alert(res);
 					} else {
+						MiniDB.create("result2", "match2id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
+						});
 						showMatch2(match2);
 					}
 				});

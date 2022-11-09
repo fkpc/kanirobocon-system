@@ -12,11 +12,20 @@ deno run -A kanirobo-server.js
 
 ## 起動オプション
 
-IPv4でポート8888を使用して起動
+### IPv4でポート8888を使用して起動
+
 ```bash
 deno run -A kanirobo-server.js --ipv4 8888
 ```
-- [http://[::]:8000/](http://[::]:8000/)を開く
+- [http://localhost:8888/](http://localhost:8888/)を開く
+
+### キャッシュされたリソースの再読み込み
+
+-r オプションにより、リモートリソースの再読み込みを行って起動
+
+```bash
+deno run -r -A kanirobo-server.js
+```
 
 ## ID/パスワード
 

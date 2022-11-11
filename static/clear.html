@@ -12,8 +12,12 @@
 <head>
 <script src=lib/fukuno.js></script>
 <script src=minidb.js></script>
-<script>
+<script type="module">
+import { Settings } from "./Settings.js";
+
 window.onload = function() {
+	title.textContent = Settings.getTitle() + " データクリア";
+
 	btnentry.onclick = function() {
 		if (confirm("エントリーデータを削除しますか？（戻せません）")) {
 			MiniDB.del("register", function(res) {
@@ -124,7 +128,7 @@ input {
 <body>
 
 <div id=box>
-<h2><a href=menu.html>かにロボコン 得点システム</a></h1>
+<h2><a href=menu.html id="title">かにロボコン 得点システム</a></h2>
 <button id=btnentry>エントリー受付 データ削除</button><br>
 <button id=btnmatch1>予選対戦表 データ削除</button><br>
 <button id=btnresult1>予選対戦結果 データ削除</button><br>

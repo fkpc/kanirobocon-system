@@ -27,11 +27,12 @@ window.onload = function() {
 		//console.log(hash);
 		get('make').style.display = "none";
 		mode = 'public';
+		title.textContent = Settings.getTitle() + " 予選ランキング";
 	} else {
 		mode = 'private' ;
+		title.textContent = Settings.getTitle() + " 予選対戦結果";
 	}
 
-	title.textContent = Settings.getTitle() + " 予選対戦結果";
 
 	MiniDB.load("entry", function(entry) {
 		MiniDB.load("register", function(register) {
@@ -243,7 +244,7 @@ a {
 </head>
 <body>
 
-<h2><a href=menu.html id=title>かにロボコン 予選対戦結果</a></h1>
+<h2><a href=menu.html id=title>かにロボコン 予選対戦結果</a></h2>
 <div id=tblt></div>
 <div id=tblk></div>
 

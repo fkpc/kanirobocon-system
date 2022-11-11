@@ -279,6 +279,8 @@ var showMatch2 = function(match2) {
 };
 
 window.onload = function() {
+	title.textContent = Settings.getTitle() + " 決勝対戦表";
+
 	MiniDB.load("match2", function(match2) {
 		//console.log(match2, match2.length);
 		if (match2.length < 2) {
@@ -345,7 +347,7 @@ h2 {
 </head>
 <body>
 
-<h1><a href=menu.html>かにロボコン 決勝対戦表</a></h1>
+<h2><a href=menu.html id="title">かにロボコン 決勝対戦表</a></h2>
 <div id=table></div>
 
 

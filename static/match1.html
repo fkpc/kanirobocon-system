@@ -12,7 +12,8 @@
 <head>
 <script src=lib/fukuno.js></script>
 <script src=minidb.js></script>
-<script>
+<script type="module">
+import { Settings } from "./Settings.js";
 
 var entry;
 var register;
@@ -293,6 +294,8 @@ var showMatch1 = function() {
 };
 
 window.onload = function() {
+	title.textContent = Settings.getTitle() + " 予選対戦表";
+
 	MiniDB.load("entry", function(entry0) {
 		MiniDB.load("register", function(register0) {
 			MiniDB.load("match1", function(match10) {
@@ -354,7 +357,7 @@ h2 {
 </head>
 <body>
 
-<h1><a href=menu.html>かにロボコン 予選対戦表</a></h1>
+<h2><a href=menu.html id="title">かにロボコン 予選対戦表</a></h2>
 <div id=table1></div>
 <div id=table2></div>
 <div id=table3></div>

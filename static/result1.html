@@ -19,7 +19,18 @@ import { Settings } from "./Settings.js";
 const MAX_ENTRY_T = Settings.getNumberOfMatch("T");
 const MAX_ENTRY_K = Settings.getNumberOfMatch("K");
 
+var mode = '';
+
 window.onload = function() {
+	const hash = document.location.hash;
+	if (hash.length > 1 && hash == "#public") {
+		//console.log(hash);
+		get('make').style.display = "none";
+		mode = 'public';
+	} else {
+		mode = 'private' ;
+	}
+
 	title.textContent = Settings.getTitle() + " 予選対戦結果";
 
 	MiniDB.load("entry", function(entry) {
@@ -114,7 +125,11 @@ var show = function(category, tablec, entry, register, result1) {
 	});
 
 	var sb = "<h2>" + (category == "T" ? "エントリー部門" : "歩行部門") + "</h2><table>";
-	sb += "<tr><th>順位</th><th>ゼッケン</th><th>チーム名</th><th>クラブ</th><th>決勝</th><th>ポイント</th><th>左 / 右</th><th>タイム</th></tr>";
+	if ( mode == 'private') {
+		sb += "<tr><th>順位</th><th>ゼッケン</th><th>チーム名</th><th>クラブ</th><th>決勝</th><th>ポイント</th><th>左 / 右</th><th>タイム</th></tr>";
+	} else {
+		sb += "<tr><th>順位</th><th>ゼッケン</th><th>チーム名</th><th>クラブ</th><th>ポイント</th><th>左 / 右</th><th>タイム</th></tr>";
+	}
 	var max = category == "T" ? MAX_ENTRY_T : MAX_ENTRY_K;
 	for (var k = 0; k < list.length; k++) {
 		sb += "<tr><th>" + (k + 1) + "位</th>";
@@ -122,7 +137,7 @@ var show = function(category, tablec, entry, register, result1) {
 		for (var j = 0; j < d2.length; j++) {
 			if (j != 3) {
 				sb += "<td>" + d2[j] + "</td>";
-			} else {
+			} else if ( mode == 'private' ) {
 				sb += "<td><select id=sel" + category + d2[0] + ">";
 				sb += "<option>-</option>";
 				for (var i = 0; i < max; i++) {

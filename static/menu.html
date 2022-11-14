@@ -10,8 +10,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
 <meta name="format-detection" content="telephone=no">
 <head>
-<script>
+<script type="module">
+import { Settings } from "./Settings.js";
+
 window.onload = function() {
+	title.textContent = Settings.getTitle() + " 得点システム";
 };
 </script>
 <style>
@@ -38,7 +41,7 @@ input {
 <body>
 
 <div id=box>
-<h2>かにロボコン 得点システム</h1>
+<h2 id="title">かにロボコン 得点システム</h2>
 <ul>
 <li>内部用</li>
 	<ul>

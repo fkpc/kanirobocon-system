@@ -12,8 +12,12 @@
 <head>
 <script src=lib/fukuno.js></script>
 <script src=minidb.js></script>
-<script>
+<script type="module">
+import { Settings } from "./Settings.js";
+
 window.onload = function() {
+	title.textContent = Settings.getTitle() + " エントリー受付";
+
 	MiniDB.load("entry", function(csv) {
 		MiniDB.load("register", function(register) {
 			console.log(register);
@@ -99,7 +103,7 @@ a {
 </head>
 <body>
 
-<h2><a href=menu.html>かにロボコン 得点システム</a></h1>
+<h2><a href=menu.html id="title">かにロボコン 得点システム</a></h2>
 <div id=main></div>
 
 </body>

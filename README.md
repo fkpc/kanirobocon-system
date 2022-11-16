@@ -32,6 +32,16 @@ deno run -r -A kanirobo-server.js
 - id: kanirobo
 - password: 29122  (運用時 [password.txt](password.txt) を編集して変更してください)
 
-## 参加者設定
+## 設定
+
+### 大会情報
+
+Settings.js で各種設定が可能です
+
+- 大会名 : 各ページ見出しへの反映
+- 部門名 : T ... エントリー部門 , K ... 歩行部門
+- 決勝トーナメント出場者数 : 部門別に設定 (4, 8, 16 ...)
+
+### 参加者
 
 data/entry.csv に、参加者情報を記入してください

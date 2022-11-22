@@ -346,10 +346,10 @@ var init2 = function(entry, match, result, resultbefore) {
 			return;
 		}
 		// サーバーに保存
-//result
-//		match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2
-//match
-//		id,category,entry1id,entry2id,table,series
+		// result
+		// match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2
+		// match
+		// id,category,entry1id,entry2id,table,series
 		result[4] = get("p1").textContent;
 		result[5] = get("p2").textContent;
 		result[6] = get("time1").textContent;
@@ -357,13 +357,21 @@ var init2 = function(entry, match, result, resultbefore) {
 		result[8] = serializeChecks(1);
 		result[9] = serializeChecks(2);
 		
-		MiniDB.set("result" + matchno, result.join(","), function(res) {
-			if (res == 1) {
-				window.location.href = "match" + matchno + ".html";
-			} else {
-				alert("スコアの登録に失敗しました。リトライしてください");
-			}
-		});
+		var  cond = true;
+		if (result[4] == 0 && result[5] == 0) {
+			cond = confirm("双方のスコアがゼロです。対戦結果を記録しますか？");
+		}
+		if (cond) {
+			MiniDB.set("result" + matchno, result.join(","), function (res) {
+				if (res == 1) {
+					window.location.href = "match" + matchno + ".html";
+				} else {
+					alert("スコアの登録に失敗しました。リトライしてください");
+				}
+			});
+		} else {
+			window.location.href = "match" + matchno + ".html";
+		}
 	};
 	
 	window.onbeforeunload = saveAndQuit;

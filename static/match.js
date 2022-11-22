@@ -15,6 +15,16 @@ const match = {
 			[ [ -1, -2, -3 ] ] // 決勝
 		]
 	},
+	m2: {
+		series: [ 2, 1 ],
+		match: [
+			[ [ 1, 2, -1 ] ] // 決勝
+		]
+	},
+	m0: {
+		series: [],
+		match: [],
+	},
 	m10: {
 		series: [ 1, 9, 8, 5, 4, 3, 6, 7, 10, 2 ],
 		match: [
@@ -40,15 +50,9 @@ const match = {
 }
 
 const getMatch = (n) => {
-	if (n == 4) {
-		return match.m4;
-	} else if (n == 8) {
-		return match.m8;
-	} else if (n == 10) {
-		return match.m10;
-	} else if (n == 26) {
-		return match.m26;
-	} else {
-		throw new Error("unsupported n match");
+	const r = match["m" + n];
+	if (r) {
+		return r;
 	}
+	throw new Error("unsupported " + n + " match");
 };

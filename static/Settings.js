@@ -6,7 +6,7 @@ class Settings {
 		return category == "T" ? "エントリー部門" : "歩行部門";
 	}
 	static getNumberOfMatch(category) {
-		return category == "T" ? 8 : 8; // 2021 両方8
+		return category == "T" ? 8 : 4;
 	}
 }
 

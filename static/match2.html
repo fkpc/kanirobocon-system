@@ -100,10 +100,15 @@ var makeMatch2 = function() {
 						n++
 					}
 				}
-				cntt++
-				cntk++
-				if (cntk == matchK.match.length)
+				if (cntk < matchK.match.length) {
+					cntk++
+				}
+				if (cntt < matchT.match.length) {
+					cntt++
+				}
+				if (cntk == matchK.match.length && cntt == matchT.match.length) {
 					break
+				}
 			}
 
 			//console.log(match2)

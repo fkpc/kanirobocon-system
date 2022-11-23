@@ -341,7 +341,7 @@ var init2 = function(entry, match, result, resultbefore) {
 	showMatch(match, result);
 	
 	var saveAndQuit = function() {
-		if (result[0] < 0) {
+		if (result[0] < 0 || !tid) {
 			window.location.href = "menu.html";
 			return;
 		}

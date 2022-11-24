@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+<meta charset='utf-8'/>
+<meta http-equiv="content-language" content="ja">
+<title>かにロボコン 得点記録システム</title>
+<meta property="og:image" content="kanirobocon-r2.png">
+<link rel="apple-touch-icon" href="kanirobocon-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
+<meta name="format-detection" content="telephone=no">
+<head>
+<script src=lib/fukuno.js></script>
+<script src=minidb.js></script>
+<script>"use strict";
+
+var preflg = true;
+var goalpointflg = false;
+var matchno = "1";
+var t1s = 0;
+var t2s = 0;
+
+window.onload = function() {
+	var hash = document.location.hash;
+	if (hash.length <= 1) {
+		const entry = [];
+		const match = [];
+		const result = [
+			-1,
+			0,
+			0, 0,
+			0, 0,
+			"", "",
+			"00000000000", "00000000000"
+		];
+		goalpointflg = true;
+		init(entry, match, result);
+	} else {
+		var nn = hash.substring(1).split(',');
+		matchno = nn[0];
+		preflg = matchno == '1';
+		goalpointflg = !preflg;
+		
+		var match1id = nn[1];
+//		console.log(match1id);
+		
+		MiniDB.load("entry", function(entry) {
+			MiniDB.get("match" + matchno, match1id, function(match) {
+				MiniDB.get("result" + matchno, match1id, function(result) {
+		//			dump(data);
+		/*
+//result
+//		match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2
+//match
+//		id,category,entry1id,entry2id,table,series
+		*/
+					// 受信した値をセット
+					if (result.length == 1) { // 無い場合、初期データ設定
+						var id1 = match[2];
+						var id2 = match[3];
+						//console.log(id1, id2)
+						if (id1 < 0 || id2 < 0) {
+							// entryidが、確定していない場合
+							MiniDB.load("result" + matchno, function(resall) {
+								var getWinner = function(matchid) {
+									var e1 = null;
+									var e2 = null;
+									var p1 = 0;
+									var p2 = 0;
+									for (var i = 1; i < resall.length; i++) {
+										var r = resall[i];
+										if (r[0] == matchid) {
+											e1 = r[2];
+											e2 = r[3];
+											p1 = parseInt(r[4]);
+											p2 = parseInt(r[5]);
+										}
+									}
+									if (e1 == null || e2 == null) {
+										alert("対戦結果データがありません");
+										window.location.href = "match2.html";
+										return 0;
+									}
+									for (var i = 1; i < resall.length; i++) {
+										var r = resall[i];
+										if (r[2] == e2 && r[3] == e1) {
+											p1 += parseInt(r[5]);
+											p2 += parseInt(r[4]);
+										}
+									}
+									return p1 > p2 ? e1 : e2;
+								};
+								let eid1 = id1
+								let eid2 = id2
+								if (eid1 < 0) {
+									eid1 = getWinner(-eid1);
+									if (eid1 == 0)
+										return;
+								}
+								if (eid2 < 0) {
+									eid2 = getWinner(-eid2);
+									if (eid2 == 0)
+										return;
+								}
+								//console.log(eid1, eid2);
+								result = [
+									match1id,
+									match[1],
+									eid1, eid2,
+									0, 0,
+									"", "",
+									"00000000000", "00000000000"
+								];
+								init(entry, match, result);
+							});
+						} else {
+							result = [
+								match1id,
+								match[1],
+								match[2], match[3],
+								0, 0,
+								"", "",
+								"00000000000", "00000000000"
+							];
+							init(entry, match, result);
+						}
+					} else {
+						init(entry, match, result);
+					}
+				});
+			});
+		});
+	}
+};
+var init = function(entry, match, result) {
+	if (preflg) {
+		init2(entry, match, result);
+	} else {
+		// 前回試合データを取得
+		MiniDB.load("result" + matchno, function(resall) {
+			for (var i = 1; i < resall.length; i++) {
+				var r = resall[i];
+				if (r[2] == result[3] && r[3] == result[2]) {
+					init2(entry, match, result, r);
+					return;
+				}
+			}
+			init2(entry, match, result);
+		});
+	}
+};
+var lastpnt = 11;
+var init2 = function(entry, match, result, resultbefore) {
+	var showPoint = function() {
+		for (var i = 1; i <= 2; i++) {
+			var p = "p" + i;
+			var pnt = 0;
+			for (var j = 0; j <= lastpnt; j++) {
+				if (get(p + "c" + j).checked) {
+					//if (j == 4 || j == 10) {
+					//if (j == 4 || j == 10 || j == 7 || j == 8) { // 奥レアメタルも+2 // 2019
+					if (j == 4) { // 地球帰還のみ2点 2020
+						pnt += 2;
+					} else if (j == 5) { //  || j == 9) {
+						if (goalpointflg)
+							pnt++;
+					} else {
+						pnt++;
+					}
+				}
+			}
+			get(p).textContent = pnt;
+			
+			if (preflg) {
+				get(p + "s").textContent = "";
+			} else {
+				if (!resultbefore) {
+					get(p + "s").textContent = pnt + "+0=" + pnt;
+				} else {
+					var pntbefore = resultbefore[i == 1 ? 5 : 4 ];
+					get(p + "s").textContent = pntbefore + "+" + pnt + "=" + (parseInt(pntbefore) + pnt);
+				}
+			}
+		}
+	};
+	var changeTime = function(time) {
+		var t = time.split(":");
+		var t2 = 180 - (parseInt(t[0]) * 60 + parseInt(t[1]));
+		return Math.floor(t2 / 60) + ":" + fixnum(t2 % 60, 2);
+	};
+	
+	for (var i = 1; i <= 2; i++) {
+		var p = "p" + i;
+		for (var j = 0; j <= lastpnt; j++) {
+			if (j == 5) { // ゴール時
+				get(p + "c" + j).entryid = i;
+				get(p + "c" + j).onchange = function() {
+					if (this.checked) {
+						get("time" + this.entryid).textContent = changeTime(time.textContent);
+					} else {
+						get("time" + this.entryid).textContent = "";
+					}
+					showPoint();
+				};
+			} else {
+				get(p + "c" + j).onchange = showPoint;
+			}
+		}
+	}
+	var resetPointAll = function() {
+		for (var i = 1; i <= 2; i++) {
+			var p = "p" + i;
+			for (var j = 0; j <= lastpnt; j++) {
+				get(p + "c" + j).checked = false;
+			}
+			get("time" + i).textContent = "";
+		}
+		showPoint();
+	};
+	var resetPoint = function(n) {
+		var p = "p" + n;
+		for (var j = 0; j <= lastpnt; j++) {
+			get(p + "c" + j).checked = false;
+		}
+		get("time" + n).textContent = "";
+		showPoint();
+	};
+	p1.onclick = function() {
+		resetPoint(1);
+	};
+	p2.onclick = function() {
+		resetPoint(2);
+	};
+	var remaint = 0;
+	var lastt = 0;
+	var timer = function() {
+		var t = new Date().getTime();
+		if (lastt) {
+			remaint -= t - lastt;
+		}
+		lastt = t;
+		
+//		var limitt = (6 * 60) * 1000 + (1000 - 1);
+		var dt = remaint;
+		if (dt < 0)
+			dt = 0;
+		var min = Math.floor(dt / 1000 / 60);
+		var sec = Math.floor(dt / 1000 % 60);
+		var s = min + ":";
+		if (sec < 10)
+			s += "0";
+		s += sec;
+		time.textContent = s;
+	};
+	var tid = null;
+	var TID_STOP = {};
+	time.onmousedown = function() {
+//		baset = new Date().getTime();
+		if (tid) {
+			if (tid == TID_STOP) {
+				resetTimer();
+			} else {
+				clearInterval(tid);
+				tid = TID_STOP;
+				lastt = 0;
+			}
+		} else {
+			tid = setInterval(timer, 100);
+		}
+	};
+	
+	var matchtime;
+	var resetTimer = function() {
+		clearInterval(tid);
+		tid = null;
+		lastt = 0;
+		time.textContent = matchtime + ":00";
+		remaint = matchtime * 60 * 1000;// + 999;
+	};
+	var showMatch = function(smatch, result) {
+//		console.log(smatch);
+		var matchname = smatch[1] + smatch[4] + "-" + smatch[5];
+		var getMatch = function(s) {
+			if (s.startsWith("T")) {
+				s = "エントリー部門 " + s.substring(1);
+			} else if (s.startsWith("K")) {
+				s = "歩行部門 " + s.substring(1);
+			}　else {
+				s = "";
+			}
+			return s;
+		};
+		get("match").textContent = getMatch(matchname);
+		var getTeam = function(entryid) {
+			for (var i = 1; i < entry.length; i++) {
+				if (entry[i][0] == entryid) {
+					let s = entry[i][2]
+					/*
+					const n = s.indexOf('（')
+					if (n >= 0)
+						return s.substring(0, n)
+					const m = s.indexOf('(')
+					if (m >= 0)
+						return s.substring(0, m)
+					*/
+					return s
+				}
+			}
+			return "";
+		};
+		
+		t1.textContent = getTeam(result[2]);
+		t2.textContent = getTeam(result[3]);
+		
+		matchtime = 3; //matchname.startsWith("T") ? 4 : 6;
+		resetTimer();
+		
+//		resetPointAll();
+		
+		get("time1").textContent = result[6];
+		get("time2").textContent = result[7];
+		deserializeChecks(1, result[8]);
+		deserializeChecks(2, result[9]);
+		showPoint();
+	};
+	
+	var serializeChecks = function(n) {
+		var s = "";
+		var p = "p" + n;
+		for (var j = 0; j <= lastpnt; j++) {
+			s += get(p + "c" + j).checked ? "1" : "0";
+		}
+		return s;
+	};
+	var deserializeChecks = function(n, s) {
+		var p = "p" + n;
+		for (var j = 0; j <= lastpnt; j++) {
+			get(p + "c" + j).checked = s.charAt(j) == "1";
+		}
+	};
+//	10000000000
+	
+	showMatch(match, result);
+	
+	var saveAndQuit = function() {
+		if (result[0] < 0) {
+			window.location.href = "menu.html";
+			return;
+		}
+		// サーバーに保存
+//result
+//		match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2
+//match
+//		id,category,entry1id,entry2id,table,series
+		result[4] = get("p1").textContent;
+		result[5] = get("p2").textContent;
+		result[6] = get("time1").textContent;
+		result[7] = get("time2").textContent;
+		result[8] = serializeChecks(1);
+		result[9] = serializeChecks(2);
+		
+		MiniDB.set("result" + matchno, result.join(","), function(res) {
+			if (res == 1) {
+				window.location.href = "match" + matchno + ".html";
+			} else {
+				alert("スコアの登録に失敗しました。リトライしてください");
+			}
+		});
+	};
+	
+	window.onbeforeunload = saveAndQuit;
+	prevbtn.onclick = saveAndQuit;
+
+
+	/*
+	prev.onclick = function() {
+		if (nmatch > 0) {
+			saveMatch();
+			nmatch--;
+			showMatch(nmatch);
+		}
+	};
+	next.onclick = function() {
+		if (nmatch < MATCH.length - 1) {
+			saveMatch();
+			nmatch++;
+			showMatch(nmatch);
+		}
+	};
+	*/
+};
+
+function changeSide(){
+	if(matchno == '1') {
+		//チーム入れ替え
+		var work = document.getElementById('t1name').value ;
+		document.getElementById( "t1name" ).value = document.getElementById('t2name').value;
+		document.getElementById( "t2name" ).value = work;
+		//ポイント設定
+		document.getElementById( "t1p1" ).value = get("p2").textContent;
+		document.getElementById( "t2p1" ).value = get("p1").textContent;
+		matchno = '2';
+		t1s = Number(get("p2").textContent);
+		t2s = Number(get("p1").textContent);
+		
+		document.getElementById( "changeButton" ).value = '終了'
+	} else if(matchno == '2'){
+		//ポイント設定
+		document.getElementById( "t1p2" ).value = get("p1").textContent;
+		document.getElementById( "t2p2" ).value = get("p2").textContent;
+		t1s = t1s + Number(get("p1").textContent);
+		t2s = t2s + Number(get("p2").textContent);
+		document.getElementById( "t1total" ).value = t1s;
+		document.getElementById( "t2total" ).value = t2s;
+		matchno = '9';
+	}
+
+	let e = Event('click');
+	let target = document.getElementById('p1');
+	target.dispatchEvent(e);	
+};
+
+
+document.addEventListener("touchmove", function(e) {
+	e.preventDefault();
+}, false);
+
+</script>
+<style>
+body {
+	background-color: black;
+	color: white;
+	margin: 0px;
+	padding: 0px;
+	font-family: sans-serif;
+	text-align: center;
+}
+.team {
+	display: inline-block;
+	font-size: 3.4vw;
+	width: 46vw;
+	height: 0;
+	text-align: center;
+	x-background-color: red;
+	margin: 0.2vw auto 0.2vw auto;
+	padding: 0 1vw;
+	white-space: nowrap;
+	word-wrap: break-word;
+	overflow: hidden;
+}
+.point {
+	display: inline-block;
+	font-size: 11vw;
+	width: 44vw;
+	x-background-color: red;
+	height: 10vw;
+	line-height: 1em;
+	text-align: center;
+	margin: 0vw auto 0vw auto;
+	padding: 0 2vw;
+}
+.pointsum {
+	display: inline-block;
+	width: 42vw;
+	height: 0;
+	font-size: 4vw;
+	line-height: 1em;
+	letter-spacing: 0.5em;
+	text-align: center;
+	margin: 0.5vw auto 0vw auto;
+	padding: 0 2vw;
+}
+.time {
+	display: inline-block;
+	font-size: 8vw;
+	line-height: 1em;
+	x-background-color: red;
+	text-align: center;
+	width: 100%;
+	margin: .2vw auto;
+}
+.ctable {
+	width: 100%;
+}
+.ctable td {
+	text-align: center;
+	width: 33%;
+}
+.ctable td:first-child {
+	text-align: left;
+}
+.ctable td:nth-child(3) {
+	text-align: right;
+}
+.match {
+	x-position: absolute;
+	display: inline-block;
+	right: 1vw;
+	top: 1em;
+	padding-right: 0.5vw;
+	x-top: -1em;
+	font-size: 3.5vw;
+	line-height: 1em;
+	x-background-color: red;
+	text-align: right;
+	x-width: 10em; /*100%; */
+	margin: 0vw auto;
+}
+.btn {
+	font-size: 7vw;
+	padding-left: 0.5vw;
+	color: #aaa;
+	display: inline-block;
+	x-position: absolute;
+	x-padding: 0.5vw 0.5vw 0.5vw 0.5vw;
+}
+#prevbtn {
+	left: 1vw;
+}
+#next {
+	right: 1vw;
+}
+.pointborder {
+	display: inline-block;
+	border: 0.3vw gray solid;
+	margin: .5vw;
+	padding: 0.5vw;
+	width: 45vw;
+}
+.pointlbl {
+	display: block;
+	text-align: left;
+}
+.chkbox {
+	margin: 0 0 10px 20px;
+}
+label {
+	display: inline-block;
+	position: relative;
+	padding: 0.5vw 0.5vw 0.5vw 5vw;
+	font-size: 2.6vw;
+	line-height: 2.6vw;
+	cursor: pointer;
+}
+label:before {
+	display: inline-block;
+	position: absolute;
+	left: 0;
+	content: '';
+	width: 3vw;
+	height: 3vw;
+	background-color: white;
+	box-shadow: inset 1px 2px 3px 0px #000;
+	border-radius: 6px 6px 6px 6px;
+}
+input[type=checkbox] {
+	display: none;
+}
+input[type=checkbox]:checked + label:before {
+	content: '\2713';
+	font-size: 3vw;
+	color: #fff;
+	background-color: #17f;
+}
+.rare {
+	text-align: left;
+}
+.exiv {
+	display: inline-block;
+	font-size: 3.4vw;
+	width: 44vw;
+	text-align: center;
+	x-background-color: red;
+	margin: 0 auto ;
+	padding: 0 2vw;
+	white-space: nowrap;
+	word-wrap: break-word;
+	overflow: hidden;
+}
+.atai{
+	font-size: 3.4vw;
+	border:none;
+	color: #fff;
+	background: none;
+	text-align: center;
+}
+.resetbox{text-align: right;}
+.resetbutton{
+	background: #333;
+	color: #ccc;
+	padding:0 20px;
+}
+.resetbutton:hover{
+	background: #000;
+
+}
+</style>
+</head>
+<body>
+	<div class="resetbox"><input type="button" value="チェンジ" onclick="changeSide()" class="resetbutton" id="changeButton"></div>
+<div class="exiv"><input type="text" class="atai" id="t1name" value="左コース" ></div>
+<div class="exiv"><input type="text" class="atai" id="t2name" value="右コース"></div>
+<span class=team id=t1>チームA</span>
+<span class=team id=t2>チームB</span>
+<span class=point id=p1>0</span>
+<span class=point id=p2>0</span>
+<div class="exiv">
+	<form oninput="op1.value = Number(a.value) + Number(b.value);">
+	<input type="text" name="a" value="0" size="5" class="atai" id="t1p1">＋<input type="text" name="b" value="0" size="5" class="atai" id="t1p2">
+	＝ <output name="op1" id="t1total"></output>
+  </form></div>
+<div class="exiv">
+	<form oninput="op2.value = Number(c.value) + Number(d.value);">
+	<input type="text" name="c" value="0" size="5" class="atai" id="t2p1" >＋<input type="text" name="d" value="0" size="5" class="atai" id="t2p2">
+	＝ <output name="op2" id="t2total">0</output>
+  </form></div>
+<span class=pointsum id=p1s>0+0=0</span>
+<span class=pointsum id=p2s>0+0=0</span>
+
+<table class=ctable><tr>
+<td></td>
+<!--<span class=btn id=next>&gt;</span>-->
+<td><span class=time id=time>3:00</span></td>
+<td><span class=match id=match>T12-1</span></td>
+</table>
+
+<!--
+得点
+地球をでた	1
+ミルキーウェイ 1
+惑星ゾーン	1
+たまご	1
+地球ゾーン帰還	2
+ゴール	1	本線のみ、予選ではタイム表示、スコア加算なし？
+レアメタル	+1 x 2, +2 x1（奥）
+激レアメタル	1	本線のみ
+歩行タイプボーナス	2	ゴール時
+
+リセット
+-->
+
+<div class=pointborder id=pb1>
+<input type=checkbox id=p1c0><label class=pointlbl for=p1c0>観覧車ゾーン +1</label>
+<input type=checkbox id=p1c1><label class=pointlbl for=p1c1>蜃気楼ゾーン +1</label>
+<input type=checkbox id=p1c2><label class=pointlbl for=p1c2>惑星到着 +1</label>
+<input type=checkbox id=p1c3><label class=pointlbl for=p1c3>たまごおいた +1</label>
+<input type=checkbox id=p1c4><label class=pointlbl for=p1c4>地球帰還 +2</label>
+<input type=checkbox id=p1c5><label class=pointlbl for=p1c5>先ゴール <span id=time1></span></label>
+<div class=rare>
+<input type=checkbox id=p1c6><label class=pointlblr for=p1c6>&nbsp;</label>
+<input type=checkbox id=p1c7><label class=pointlblr for=p1c7>&nbsp;</label>
+<input type=checkbox id=p1c8><label class=pointlblr for=p1c8>レアメタル +1</label>
+</div>
+<div class=rare>
+<input type=checkbox id=p1c9><label class=pointlblr for=p1c9>&nbsp;</label>
+<input type=checkbox id=p1c10><label class=pointlblr for=p1c10>&nbsp;</label>
+<input type=checkbox id=p1c11><label class=pointlblr for=p1c11>激レアメタル +1</label>
+</div>
+<!--
+<input type=checkbox id=p1c10><label class=pointlbl for=p1c10>歩行ボーナス ゴール時+2</label>
+-->
+</div>
+
+<div class=pointborder id=pb2>
+<input type=checkbox id=p2c0><label class=pointlbl for=p2c0>観覧車ゾーン +1</label>
+<input type=checkbox id=p2c1><label class=pointlbl for=p2c1>蜃気楼ゾーン +1</label>
+<input type=checkbox id=p2c2><label class=pointlbl for=p2c2>惑星到着 +1</label>
+<input type=checkbox id=p2c3><label class=pointlbl for=p2c3>たまごおいた +1</label>
+<input type=checkbox id=p2c4><label class=pointlbl for=p2c4>地球帰還 +2</label>
+<input type=checkbox id=p2c5><label class=pointlbl for=p2c5>先ゴール <span id=time2></span></label>
+<div class=rare>
+<input type=checkbox id=p2c6><label class=pointlblr for=p2c6>&nbsp;</label>
+<input type=checkbox id=p2c7><label class=pointlblr for=p2c7>&nbsp;</label>
+<input type=checkbox id=p2c8><label class=pointlblr for=p2c8>レアメタル +1</label>
+</div>
+<div class=rare>
+<input type=checkbox id=p2c9><label class=pointlblr for=p2c9>&nbsp;</label>
+<input type=checkbox id=p2c10><label class=pointlblr for=p2c10>&nbsp;</label>
+<input type=checkbox id=p2c11><label class=pointlblr for=p2c11>激レアメタル +1</label>
+</div>
+<!--
+<input type=checkbox id=p2c10><label class=pointlbl for=p2c10>歩行ボーナス ゴール時+2</label>
+-->
+</div>
+
+
+</body>
+</html>

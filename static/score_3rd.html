@@ -369,7 +369,7 @@ var init2 = function(entry, match, result, resultbefore) {
 	};
 	
 	window.onbeforeunload = saveAndQuit;
-	prevbtn.onclick = saveAndQuit;
+	//prevbtn.onclick = saveAndQuit;
 
 
 	/*
@@ -415,7 +415,7 @@ function changeSide(){
 		matchno = '9';
 	}
 
-	let e = Event('click');
+	let e = new Event('click');
 	let target = document.getElementById('p1');
 	target.dispatchEvent(e);	
 };

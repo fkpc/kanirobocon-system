@@ -4,7 +4,7 @@
 
 ## 汎用得点システム
 
-- [https://fkpc.github.io/kanirobocon-system/static/score_3rd.html](汎用得点システム)
+- [汎用得点システム](https://fkpc.github.io/kanirobocon-system/static/score_3rd.html)
 
 ## 起動方法
 

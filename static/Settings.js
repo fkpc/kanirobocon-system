@@ -8,6 +8,9 @@ class Settings {
 	static getNumberOfMatch(category) {
 		return category == "T" ? 8 : 4;
 	}
+	static getNumberOfStage(category) {
+		return category == "T" ? 2 : 1;
+	}
 }
 
 export { Settings };

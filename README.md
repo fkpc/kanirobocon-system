@@ -2,6 +2,11 @@
 
 かにロボコン得点システム、クライアント側 for iPad / PC
 
+## 汎用得点システム
+
+- [汎用得点システム](https://fkpc.github.io/kanirobocon-system/static/score_3rd.html)
+- [8チーム用トーナメントテンプレート for PowerPoint](https://fkpc.github.io/kanirobocon-system/tournament-template.pptx)
+
 ## 起動方法
 
 [Deno](https://deno.land/)をインストールし下記で実行
@@ -46,3 +51,8 @@ Settings.js で各種設定が可能です
 ### 参加者
 
 data/entry.csv に、参加者情報を記入してください
+
+## 貢献者
+
+- [福井こどもプログラミング協議会](https://fkpc.github.io/)
+- [PCN魚津](https://pcn-uozu.com/)

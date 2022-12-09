@@ -418,6 +418,8 @@ function changeSide(){
 	let e = new Event('click');
 	let target = document.getElementById('p1');
 	target.dispatchEvent(e);	
+	target = document.getElementById('p2');
+	target.dispatchEvent(e);
 };
 
 
@@ -607,7 +609,7 @@ input[type=checkbox]:checked + label:before {
 <div class="exiv">
 	<form oninput="op1.value = Number(a.value) + Number(b.value);">
 	<input type="text" name="a" value="0" size="5" class="atai" id="t1p1">＋<input type="text" name="b" value="0" size="5" class="atai" id="t1p2">
-	＝ <output name="op1" id="t1total"></output>
+	＝ <output name="op1" id="t1total">0</output>
   </form></div>
 <div class="exiv">
 	<form oninput="op2.value = Number(c.value) + Number(d.value);">

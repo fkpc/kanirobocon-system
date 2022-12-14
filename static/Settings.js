@@ -13,7 +13,7 @@ class Settings {
 		return {
             "T" : 8,
             "K" : 8,
-            "O" : 4,
+            "O" : 2,
         }[category];
 	}
     static getNumOfYosenStages() {

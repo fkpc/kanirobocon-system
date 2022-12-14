@@ -49,6 +49,9 @@ window.onload = function() {
 	//				alert(res);
 					MiniDB.del("finalist-K", function(res) {
 	//					alert(res);
+                        MiniDB.del("finalist-O", function(res) {
+        //					alert(res);
+                        });
 					});
 				});
 			});
@@ -78,10 +81,12 @@ window.onload = function() {
 											MiniDB.del("match2", function(res) {
 												MiniDB.del("finalist-T", function(res) {
 													MiniDB.del("finalist-K", function(res) {
-														MiniDB.del("result2", function(res) {
-															MiniDB.create("result2", "match2id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
-															});
-														});
+                                                        MiniDB.del("finalist-O", function(res) {
+                                                            MiniDB.del("result2", function(res) {
+                                                                MiniDB.create("result2", "match2id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
+                                                                });
+                                                            });
+                                                        });
 													});
 												});
 											});

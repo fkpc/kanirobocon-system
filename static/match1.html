@@ -15,8 +15,9 @@
 <script type="module">
 import { Settings } from "./Settings.js";
 
-const stageT = Settings.getNumberOfStage("T"); // 2
-const stageK = Settings.getNumberOfStage("K"); // 1
+// const stageT = Settings.getNumberOfStage("T"); // 2
+// const stageK = Settings.getNumberOfStage("K"); // 1
+// const stageO = Settings.getNumberOfStage("O"); // 1
 
 var entry;
 var register;
@@ -56,6 +57,7 @@ var makeMatch1 = function() {
 	var list = [];
 	var nt = 0;
 	var nk = 0;
+    var no = 0;
 	for (var i = 1; i < register.length; i++) {
 		var r = register[i][0];
 		var chk = false;
@@ -73,7 +75,11 @@ var makeMatch1 = function() {
 					if (entry[j][1] == "T")
 						nt++;
 					else
+					if (entry[j][1] == "K")
 						nk++;
+                    else
+					if (entry[j][1] == "O")
+						no++;
 					break;
 				}
 			}
@@ -88,15 +94,24 @@ var makeMatch1 = function() {
 		list.push([ 0, "K", "-", "-", "-", "", "", "", "", "-" ]);
 		nk++;
 	}
-	console.log(nt, nk);
+	if (no % 2 == 1) {
+		list.push([ 0, "O", "-", "-", "-", "", "", "", "", "-" ]);
+		no++;
+	}
+	console.log(nt, nk, no);
 	// 低学年と高学年に分ける
 	var listt = [];
 	var listk = [];
+    var listo = [];
 	for (var i = 0; i < list.length; i++) {
 		if (list[i][1] == "T")
 			listt.push(list[i]);
 		else
+		if (list[i][1] == "K")
 			listk.push(list[i]);
+        else
+		if (list[i][1] == "O")
+			listo.push(list[i]);
 	}
 	// 対戦表
 	var match = [];
@@ -213,18 +228,25 @@ var makeMatch1 = function() {
 		ignoreNull(listt);
 		shuffle(listk);
 		ignoreNull(listk);
+		shuffle(listo);
+		ignoreNull(listo);
 		
 		if (!make(listt, true, i))
 			continue;
 		if (!make(listk, true, i))
 			continue;
+		if (!make(listo, true, i))
+			continue;
 		
 		shuffleAfterHalf(listt);
 		shuffleAfterHalf(listk);
+		shuffleAfterHalf(listo);
 		
 		if (!make(listt, false, i))
 			continue;
 		if (!make(listk, false, i))
+			continue;
+		if (!make(listo, false, i))
 			continue;
 		break;
 	}
@@ -234,34 +256,37 @@ var makeMatch1 = function() {
 	}
 	
 //	dump(match);
-	if (stageT > 2 || stageT < 1 || stageK != 1) {
-		alert("非対応のステージ数が設定されています。getNumberOfStage()を見直してください。");
-		return;
-	}
+	// if (stageT > 2 || stageT < 1 || stageK != 1) {
+	// 	alert("非対応のステージ数が設定されています。getNumberOfStage()を見直してください。");
+	// 	return;
+	// }
+
 	// 3テーブルに割り振る
 	// 多い方に2テーブル割り振る
-	var bigger = "T";
+	// var bigger = "T";
+    var noys = Settings.getNumOfYosenStages();
 	match1 = [];
 	match1.push([ "id", "category", "entry1id", "entry2id", "table", "series" ]);
 	var id = 1;
 	for (var i = 0; i < match.length; i++) {
 		var m = match[i];
-		if (m[0][1] == bigger) {
-			if (stageT == 2) {
-				match1.push([ id, m[0][1], m[0][0], m[1][0], id % 2 + 1, Math.floor((id - 1) / 2) + 1 ]);
-			} else if (stageT == 1) {
-				match1.push([ id, m[0][1], m[0][0], m[1][0], 1, id]);
-			}
+		// if (m[0][1] == bigger) {
+			// if (stageT == 2) {
+			// 	match1.push([ id, m[0][1], m[0][0], m[1][0], id % 2 + 1, Math.floor((id - 1) / 2) + 1 ]);
+			// } else if (stageT == 1) {
+			// 	match1.push([ id, m[0][1], m[0][0], m[1][0], 1, id]);
+			// }
+            match1.push([ id, m[0][1], m[0][0], m[1][0], id % noys + 1, Math.floor((id - 1) / noys) + 1 ]);
 			id++;
-		}
+		// }
 	}
-	var idt = 1;
-	for (var i = 0; i < match.length; i++) {
-		var m = match[i];
-		if (m[0][1] != bigger && stageK == 1) {
-			match1.push([ id++, m[0][1], m[0][0], m[1][0], 3, idt++ ]);
-		}
-	}
+	// var idt = 1;
+	// for (var i = 0; i < match.length; i++) {
+	// 	var m = match[i];
+	// 	if (m[0][1] != bigger && stageK == 1) {
+	// 		match1.push([ id++, m[0][1], m[0][0], m[1][0], 3, idt++ ]);
+	// 	}
+	// }
 	MiniDB.create("match1", MiniDB.serialize(match1), function(res) {
 		if (res != 1) {
 			alert("生成に失敗しました。再作成してください。");
@@ -289,8 +314,9 @@ var showMatch1 = function() {
 			};
 			var d2 = [
 				"<a href=score.html#1," + d[0] + ">" + d[4] + "-" + d[5] + "</a>",
-				d[1] == "T" ? "エ" : "歩",
+				// d[1] == "T" ? "エ" : "歩",
 				//d[1] == "T" ? "低" : "高",
+                {"T":"エ", "K":"歩", "O":"オ"}[d[1]],
 				getEntryName(d[2]),
 				getEntryName(d[3]),
 			];

@@ -102,11 +102,11 @@ const init = () => {
 		const f = function() {
 			cnt++;
 			if (autoflg && cnt > 3) {
-				if (autoflg && category == "K") {
+				if (autoflg && category == "O") {
 					window.location.href = "sponsor.html#A";
 					return;
 				}
-				window.location.href = "tournament.html#" + (category == "T" ? "K" : "T") + "A";
+				window.location.href = "tournament.html#" + (category == "T" ? "K" : category == "K" ? "O" : "T") + "A";
 				init();
 				return;
 			} else {

@@ -18,6 +18,7 @@ import { Settings } from "./Settings.js";
 
 const MAX_ENTRY_T = Settings.getNumberOfMatch("T");
 const MAX_ENTRY_K = Settings.getNumberOfMatch("K");
+const MAX_ENTRY_O = Settings.getNumberOfMatch("O");
 
 var mode = '';
 
@@ -39,10 +40,12 @@ window.onload = function() {
 			MiniDB.load("result1", function(result1) {
 				show("T", "tblt", entry, register, result1);
 				show("K", "tblk", entry, register, result1);
+				show("O", "tblo", entry, register, result1);
 				
 				make.onclick = function() {
 					makeFinalist("T", entry);
 					makeFinalist("K", entry);
+					makeFinalist("O", entry);
 				};
 			});
 		});
@@ -125,13 +128,13 @@ var show = function(category, tablec, entry, register, result1) {
 		return a[0] - b[0] // どちらも同点の場合はゼッケン順
 	});
 
-	var sb = "<h2>" + (category == "T" ? "エントリー部門" : "歩行部門") + "</h2><table>";
+	var sb = "<h2>" + Settings.getGroup(category) + "</h2><table>";
 	if ( mode == 'private') {
 		sb += "<tr><th>順位</th><th>ゼッケン</th><th>チーム名</th><th>クラブ</th><th>決勝</th><th>ポイント</th><th>左 / 右</th><th>タイム</th></tr>";
 	} else {
 		sb += "<tr><th>順位</th><th>ゼッケン</th><th>チーム名</th><th>クラブ</th><th>ポイント</th><th>左 / 右</th><th>タイム</th></tr>";
 	}
-	var max = category == "T" ? MAX_ENTRY_T : MAX_ENTRY_K;
+	var max = Settings.getNumberOfMatch(category);
 	for (var k = 0; k < list.length; k++) {
 		sb += "<tr><th>" + (k + 1) + "位</th>";
 		var d2 = list[k];
@@ -164,8 +167,8 @@ var makeFinalist = function(category, entry) {
 		return null;
 	};
 
-	var max = category == "T" ? MAX_ENTRY_T : MAX_ENTRY_K; // -> 2019 全員通過させる
-	var cat = category == "T" ? "エントリー部門" : "歩行部門";
+	var max = Settings.getNumberOfMatch(category);
+	var cat = Settings.getGroup(category);
 	var list = [];
 	for (var i = 1; i < entry.length; i++) {
 		var e = entry[i];
@@ -203,8 +206,13 @@ var makeFinalist = function(category, entry) {
 	if (category == "T" && list.length != MAX_ENTRY_T) {
 		alert(cat + " エントリー数が" + MAX_ENTRY_T + "ではありません。");
 		return;
-	} else if (category == "K" && list.length != MAX_ENTRY_K) {
+	} else
+    if (category == "K" && list.length != MAX_ENTRY_K) {
 		alert(cat + " エントリー数が" + MAX_ENTRY_K + "ではありません。");
+		return;
+	} else
+    if (category == "O" && list.length != MAX_ENTRY_O) {
+		alert(cat + " エントリー数が" + MAX_ENTRY_O + "ではありません。");
 		return;
 	}
 	MiniDB.create("finalist-" + category, MiniDB.serialize(s), function(res) {
@@ -247,6 +255,7 @@ a {
 <h2><a href=menu.html id=title>かにロボコン 予選対戦結果</a></h2>
 <div id=tblt></div>
 <div id=tblk></div>
+<div id=tblo></div>
 
 <button id=make>決勝トーナメント作成</button>
 

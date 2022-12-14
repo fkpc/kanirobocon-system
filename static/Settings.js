@@ -3,14 +3,22 @@ class Settings {
 		return "越前がにロボコン";
 	};
 	static getGroup(category) {
-		return category == "T" ? "エントリー部門" : "歩行部門";
+		return {
+            "T" : "エントリー部門",
+            "K" : "歩行部門",
+            "O" : "オープン部門",
+        }[category];
 	}
 	static getNumberOfMatch(category) {
-		return category == "T" ? 8 : 4;
+		return {
+            "T" : 8,
+            "K" : 8,
+            "O" : 4,
+        }[category];
 	}
-	static getNumberOfStage(category) {
-		return category == "T" ? 2 : 1;
-	}
+    static getNumOfYosenStages() {
+        return 3;
+    }
 	static getPointLabels(){
 		return [
 			"地球出発 +1",

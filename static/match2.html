@@ -20,6 +20,7 @@ const MATCH_ONCE = false
 
 const matchT = getMatch(Settings.getNumberOfMatch("T")); // match.m8;
 const matchK = getMatch(Settings.getNumberOfMatch("K")); // match.m4;
+const matchO = getMatch(Settings.getNumberOfMatch("O")); // match.m4;
 
 var makeMatch2 = function() {
 	MiniDB.load("finalist-T", function(finalistt) {
@@ -32,103 +33,137 @@ var makeMatch2 = function() {
 				alert("決勝トーナメントが生成されていません。");
 				document.location.href = "menu.html";
 			}
-			//console.log(finalistt)
-			//console.log(finalistk)
-			//console.log(finalistt.length, finalistk.length); // 11, 27
-			
-			const match2 = []
-			match2.push([ "id", "category", "entry1id", "entry2id", "table", "series" ])
+            MiniDB.load("finalist-O", function(finalisto) {
+                if (finalisto.length == 0) {
+                    alert("決勝トーナメントが生成されていません。");
+                    document.location.href = "menu.html";
+                }
+                //console.log(finalistt)
+                //console.log(finalistk)
+                console.log(finalistt.length, finalistk.length, finalisto.length);
+                
+                const match2 = []
+                match2.push([ "id", "category", "entry1id", "entry2id", "table", "series" ])
 
-			var n = 1;
-			
-			const tmat = {}
-			const kmat = {}
+                var n = 1;
+                
+                const tmat = {}
+                const kmat = {}
+                const omat = {}
 
-			const getTID = function(num) {
-				if (num < 0)
-					return -tmat[num]
-				return finalistt[num][1]
-			}
-			const getKID = function(num) {
-				if (num < 0)
-					return -kmat[num]
-				const res = finalistk[num][1]
-				return res
-			}
-			let ma = null;
-			let cntt = 0;
-			//let cntk = -1;
-			let cntk = 0;
-			for (;;) {
-				// エントリー部門
-				if (cntt >= 0 && cntt < matchT.match.length) {
-					ma = matchT.match[cntt]
-					for (let i = 0; i < ma.length; i++) {
-						const m = ma[i]
-						match2.push([ n, "T", getTID(m[0]), getTID(m[1]), 1, n ]);
-						tmat[m[2]] = n
-						n++
-					}
-				}
-				// 歩行部門
-				if (cntk >= 0 && cntk < matchK.match.length) {
-					ma = matchK.match[cntk]
-					for (let i = 0; i < ma.length; i++) {
-						const m = ma[i]
-						match2.push([ n, "K", getKID(m[0]), getKID(m[1]), 1, n ]);
-						kmat[m[2]] = n
-						n++
-					}
-				}
-				// エントリー部門、逆
-				if (cntt >= 0 && cntt < matchT.match.length) {
-					ma = matchT.match[cntt]
-					for (let i = 0; i < ma.length; i++) {
-						const m = ma[i]
-						match2.push([ n, "T", getTID(m[1]), getTID(m[0]), 1, n ]);
-						tmat[m[2]] = n
-						n++
-					}
-				}
-				// 歩行部門、逆
-				if (cntk >= 0 && cntk < matchK.match.length) {
-					ma = matchK.match[cntk]
-					for (let i = 0; i < ma.length; i++) {
-						const m = ma[i]
-						match2.push([ n, "K", getKID(m[1]), getKID(m[0]), 1, n ]);
-						kmat[m[2]] = n
-						n++
-					}
-				}
-				if (cntk < matchK.match.length) {
-					cntk++
-				}
-				if (cntt < matchT.match.length) {
-					cntt++
-				}
-				if (cntk == matchK.match.length && cntt == matchT.match.length) {
-					break
-				}
-			}
+                const getTID = function(num) {
+                    if (num < 0)
+                        return -tmat[num]
+                    return finalistt[num][1]
+                }
+                const getKID = function(num) {
+                    if (num < 0)
+                        return -kmat[num]
+                    return finalistk[num][1]
+                }
+                const getOID = function(num) {
+                    if (num < 0)
+                        return -omat[num]
+                    return finalisto[num][1]
+                }
+                let ma = null;
+                let cntt = 0;
+                //let cntk = -1;
+                let cntk = 0;
+                let cnto = 0;
+                for (;;) {
+                    // エントリー部門
+                    if (cntt >= 0 && cntt < matchT.match.length) {
+                        ma = matchT.match[cntt]
+                        for (let i = 0; i < ma.length; i++) {
+                            const m = ma[i]
+                            match2.push([ n, "T", getTID(m[0]), getTID(m[1]), 1, n ]);
+                            tmat[m[2]] = n
+                            n++
+                        }
+                    }
+                    // 歩行部門
+                    if (cntk >= 0 && cntk < matchK.match.length) {
+                        ma = matchK.match[cntk]
+                        for (let i = 0; i < ma.length; i++) {
+                            const m = ma[i]
+                            match2.push([ n, "K", getKID(m[0]), getKID(m[1]), 1, n ]);
+                            kmat[m[2]] = n
+                            n++
+                        }
+                    }
+                    // オープン部門
+                    if (cnto >= 0 && cnto < matchO.match.length) {
+                        ma = matchO.match[cnto]
+                        for (let i = 0; i < ma.length; i++) {
+                            const m = ma[i]
+                            match2.push([ n, "O", getOID(m[0]), getOID(m[1]), 1, n ]);
+                            omat[m[2]] = n
+                            n++
+                        }
+                    }
+                    // エントリー部門、逆
+                    if (cntt >= 0 && cntt < matchT.match.length) {
+                        ma = matchT.match[cntt]
+                        for (let i = 0; i < ma.length; i++) {
+                            const m = ma[i]
+                            match2.push([ n, "T", getTID(m[1]), getTID(m[0]), 1, n ]);
+                            tmat[m[2]] = n
+                            n++
+                        }
+                    }
+                    // 歩行部門、逆
+                    if (cntk >= 0 && cntk < matchK.match.length) {
+                        ma = matchK.match[cntk]
+                        for (let i = 0; i < ma.length; i++) {
+                            const m = ma[i]
+                            match2.push([ n, "K", getKID(m[1]), getKID(m[0]), 1, n ]);
+                            kmat[m[2]] = n
+                            n++
+                        }
+                    }
+                    // オープン部門、逆
+                    if (cnto >= 0 && cnto < matchO.match.length) {
+                        ma = matchO.match[cnto]
+                        for (let i = 0; i < ma.length; i++) {
+                            const m = ma[i]
+                            match2.push([ n, "O", getOID(m[1]), getOID(m[0]), 1, n ]);
+                            omat[m[2]] = n
+                            n++
+                        }
+                    }
+                    if (cntk < matchK.match.length) {
+                        cntk++
+                    }
+                    if (cntt < matchT.match.length) {
+                        cntt++
+                    }
+                    if (cnto < matchO.match.length) {
+                        cnto++
+                    }
+                    if (cntk == matchK.match.length && cntt == matchT.match.length && cnto == matchO.match.length) {
+                        break
+                    }
+                }
 
-			//console.log(match2)
-			
-			MiniDB.del("match2", function(res) {
-				
-				MiniDB.create("match2", MiniDB.serialize(match2), function(res) {
-					if (res != 1) {
-						alert("生成に失敗しました。再作成してください。");
-					//	alert(res);
-					} else {
-						MiniDB.create("result2", "match2id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
-						});
-						showMatch2(match2);
-					}
-				});
-		//	dump(match1);
-		
-			});
-			
+                //console.log(match2)
+                
+                MiniDB.del("match2", function(res) {
+                    
+                    MiniDB.create("match2", MiniDB.serialize(match2), function(res) {
+                        if (res != 1) {
+                            alert("生成に失敗しました。再作成してください。");
+                        //	alert(res);
+                        } else {
+                            MiniDB.create("result2", "match2id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2", function(res) {
+                            });
+                            showMatch2(match2);
+                        }
+                    });
+            //	dump(match1);
+            
+                });
+            });
 		});
 	});
 };
@@ -251,7 +286,8 @@ var showMatch2 = function(match2) {
 				var d2 = [
 					"<a href=score.html#2," + d[0] + ">" + d[0] + "</a>",
 					//d[1] == "T" ? "低" : "高",
-					d[1] == "T" ? "エ" : "歩",
+					// d[1] == "T" ? "エ" : "歩",
+                    {"T":"エ", "K":"歩", "O":"オ"}[d[1]],
 					name1,
 					club1,
 					"/",
@@ -287,7 +323,7 @@ window.onload = function() {
 	title.textContent = Settings.getTitle() + " 決勝対戦表";
 
 	MiniDB.load("match2", function(match2) {
-		//console.log(match2, match2.length);
+		console.log(match2, match2.length);
 		if (match2.length < 2) {
 		//if (true) {
 			console.log("makeMatch2!!");

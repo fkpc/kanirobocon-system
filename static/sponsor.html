@@ -35,11 +35,15 @@ window.onload = async () => {
 	const csv = CSV.decode(await (await fetch("sponsor.csv")).text());
 	const json = CSV.toJSON(csv);
 
-	// セイコスポンサーは出現確率を倍に
+	// 上級スポンサーは出現確率をN倍に
 	for (let i = json.length - 1; i >= 0; i--) {
+		if (json[i].rank == "zuwai") {
+			json.push(json[i]);
+			json.push(json[i]);
+			json.push(json[i]);
+		}else
 		if (json[i].rank == "seiko") {
 			json.push(json[i]);
-			//json.push(json[i]);
 		}
 	}
 

@@ -25,7 +25,6 @@ var goalpointflg = false;
 var matchno = "1";
 
 window.onload = function() {
-	initLabels();
 	var hash = document.location.hash;
 	if (hash.length <= 1) {
 		const entry = [];
@@ -136,6 +135,7 @@ window.onload = function() {
 			});
 		});
 	}
+	initLabels();
 };
 var initLabels = function(){
 	for (var i = 1; i <= 2; i++) {
@@ -148,7 +148,13 @@ var initLabels = function(){
 				tempEl.innerHTML = base.substr(base.indexOf('<'));
 				//var tags = base.substr(base.indexOf('<'));
 				//console.log(tags);
-				get("p" + i + "c" + j + "l").textContent = pointLabels[j];
+
+                let label = pointLabels[j];
+                if(!goalpointflg && label=='先ゴール'){
+                    label = 'ゴール';
+                }
+
+				get("p" + i + "c" + j + "l").textContent = label;
 				get("p" + i + "c" + j + "l").appendChild(tempEl.firstElementChild);
 			}
 		}
@@ -185,7 +191,9 @@ var init2 = function(entry, match, result, resultbefore) {
 					} else if (j == 5) { //  || j == 9) {
 						if (goalpointflg)
 							pnt++;
-					} else {
+					} else if (j == 12 || j == 13 || j == 14) {
+						pnt += -2;
+					} else{
 						pnt++;
 					}
 				}
@@ -306,7 +314,9 @@ var init2 = function(entry, match, result, resultbefore) {
 				s = Settings.getGroup("T") + s.substring(1);  // エントリー部門
 			} else if (s.startsWith("K")) {
 				s = Settings.getGroup("K") + s.substring(1);
-			}　else {
+			}　else if (s.startsWith("O")) {
+				s = Settings.getGroup("O") + s.substring(1);
+			}　else{
 				s = "";
 			}
 			return s;
@@ -529,15 +539,21 @@ body {
 	display: block;
 	text-align: left;
 }
+.pointlbl_dark {
+	display: block;
+	text-align: left;
+    color: #444;
+    font-size: 1.6vw;
+}
 .chkbox {
 	margin: 0 0 10px 20px;
 }
 label {
 	display: inline-block;
 	position: relative;
-	padding: 0.5vw 0.5vw 0.5vw 5vw;
-	font-size: 2.6vw;
-	line-height: 2.6vw;
+	padding: 0.5vw 0.5vw 0.5vw 3.5vw;
+	font-size: 2.0vw;
+	line-height: 2.0vw;
 	cursor: pointer;
 }
 label:before {
@@ -545,8 +561,8 @@ label:before {
 	position: absolute;
 	left: 0;
 	content: '';
-	width: 3vw;
-	height: 3vw;
+	width: 2.5vw;
+	height: 2.5vw;
 	background-color: white;
 	box-shadow: inset 1px 2px 3px 0px #000;
 	border-radius: 6px 6px 6px 6px;
@@ -603,6 +619,7 @@ input[type=checkbox]:checked + label:before {
 <input type=checkbox id=p1c3><label class=pointlbl id=p1c3l for=p1c3>たまごおいた +1</label>
 <input type=checkbox id=p1c4><label class=pointlbl id=p1c4l for=p1c4>地球帰還 +2</label>
 <input type=checkbox id=p1c5><label class=pointlbl id=p1c5l for=p1c5>先ゴール <span id=time1></span></label>
+<hr>
 <div class=rare>
 <input type=checkbox id=p1c6><label class=pointlblr id=p1c6l for=p1c6>&nbsp;</label>
 <input type=checkbox id=p1c7><label class=pointlblr id=p1c7l for=p1c7>&nbsp;</label>
@@ -613,6 +630,13 @@ input[type=checkbox]:checked + label:before {
 <input type=checkbox id=p1c10><label class=pointlblr id=p1c10l for=p1c10>&nbsp;</label>
 <input type=checkbox id=p1c11><label class=pointlblr id=p1c11l for=p1c11>激レアメタル +1</label>
 </div>
+<div class=rare>
+    <input type=checkbox id=p1c12><label class=pointlblr id=p1c12l for=p1c12>&nbsp;</label>
+    <input type=checkbox id=p1c13><label class=pointlblr id=p1c13l for=p1c13>&nbsp;</label>
+    <input type=checkbox id=p1c14><label class=pointlblr id=p1c14l for=p1c14>宇宙ウィルス -2</label>
+</div>
+<hr>
+<input type=checkbox id=p1c15><label class=pointlbl_dark id=p1c15l for=p1c15>(同点時システム対処 +1)</label>
 <!--
 <input type=checkbox id=p1c10><label class=pointlbl for=p1c10>歩行ボーナス ゴール時+2</label>
 -->
@@ -625,6 +649,7 @@ input[type=checkbox]:checked + label:before {
 <input type=checkbox id=p2c3><label class=pointlbl id=p2c3l for=p2c3>たまごおいた +1</label>
 <input type=checkbox id=p2c4><label class=pointlbl id=p2c4l for=p2c4>地球帰還 +2</label>
 <input type=checkbox id=p2c5><label class=pointlbl id=p2c5l for=p2c5>先ゴール <span id=time2></span></label>
+<hr>
 <div class=rare>
 <input type=checkbox id=p2c6><label class=pointlblr id=p2c6l for=p2c6>&nbsp;</label>
 <input type=checkbox id=p2c7><label class=pointlblr id=p2c7l for=p2c7>&nbsp;</label>
@@ -635,6 +660,13 @@ input[type=checkbox]:checked + label:before {
 <input type=checkbox id=p2c10><label class=pointlblr id=p2c10l for=p2c10>&nbsp;</label>
 <input type=checkbox id=p2c11><label class=pointlblr id=p2c11l for=p2c11>激レアメタル +1</label>
 </div>
+<div class=rare>
+    <input type=checkbox id=p2c12><label class=pointlblr id=p2c12l for=p2c12>&nbsp;</label>
+    <input type=checkbox id=p2c13><label class=pointlblr id=p2c13l for=p2c13>&nbsp;</label>
+    <input type=checkbox id=p2c14><label class=pointlblr id=p2c14l for=p2c14>宇宙ウィルス -2</label>
+</div>
+<hr>
+<input type=checkbox id=p2c15><label class=pointlbl_dark id=p2c15l for=p2c15>(同点時システム対処 +1)</label>
 <!--
 <input type=checkbox id=p2c10><label class=pointlbl for=p2c10>歩行ボーナス ゴール時+2</label>
 -->

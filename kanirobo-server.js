@@ -12,6 +12,10 @@ const fromURLSearchParams = (param) => {
   return res;
 };
 const retJSONP = (callback, obj) => {
+  if (callback == undefined) {
+    const s = JSON.stringify(obj);
+    return new Response(s, { headers: { "Content-Type": "application/json" }})
+  }
   const s = `${callback}(${JSON.stringify(obj)});`;
   return new Response(s, { headers: { "Content-Type": "application/json" }})
 };

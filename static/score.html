@@ -1,32 +1,68 @@
-<!DOCTYPE html>
-<html>
-<meta charset='utf-8'/>
-<meta http-equiv="content-language" content="ja">
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="icon" href="data:">
 <title>かにロボコン 得点記録システム</title>
 <meta property="og:image" content="kanirobocon-r2.png">
-<link rel="apple-touch-icon" href="kanirobocon-icon.png"/>
+<link rel="apple-touch-icon" href="kanirobocon-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi">
 <meta name="format-detection" content="telephone=no">
-<head>
-<script src=lib/fukuno.js></script>
-<script src=minidb.js></script>
+<link rel="stylesheet" href="score.css">
+</head>
+<body>
+
+<span class=team id=t1>チームA</span>
+<span class=team id=t2>チームB</span>
+<span class=point id=p1>0</span>
+<span class=point id=p2>0</span>
+<span class=pointsum id=p1s>0+0=0</span>
+<span class=pointsum id=p2s>0+0=0</span>
+
+<table class=ctable><tr>
+<td><span class=btn id=prevbtn>&lt;&lt;</span></td>
+<!--<span class=btn id=next>&gt;</span>-->
+<td><span class=time id=time>3:00</span></td>
+<td><span class=match id=match>T12-1</span></td>
+</table>
+
+<div class=pointborder id=pb1></div>
+<div class=pointborder id=pb2></div>
+
+
 <script type="module">
 import { Settings } from "./Settings.js";
-	
-const pointLabels = Settings.getPointLabels();
+import { fixnum } from "https://js.sabae.cc/Num.js";
+import { MiniDB } from "./minidb2.js";
+import { CSV } from "https://js.sabae.cc/CSV.js";
+
+// dom util
+const get = (id) => document.getElementById(id);
+
+const create = (tag, parent, cls) => {
+	const c = document.createElement(tag);
+	if (parent) parent.appendChild(c);
+	if (cls) c.className = cls;
+	return c;
+};
+
+// util
+const changeTime = (time) => {
+	const t = time.split(":");
+	const t2 = 180 - (parseInt(t[0]) * 60 + parseInt(t[1]));
+	return Math.floor(t2 / 60) + ":" + fixnum(t2 % 60, 2);
+};
+
+// main
+
+const pointLabels = CSV.toJSON(await MiniDB.load("point"));
+
 const lastpnt = pointLabels.length - 1;
 
-"use strict";
+let preflg = true; // 予選フラグ → 決勝なら合計得点表示
 
-var preflg = true;
-var goalpointflg = false;
-var matchno = "1";
+let matchno = "1";
 
-window.onload = function() {
+const main = async () => {
 	initLabels();
-	var hash = document.location.hash;
+	const hash = document.location.hash;
 	if (hash.length <= 1) {
 		const entry = [];
 		const match = [];
@@ -38,245 +74,245 @@ window.onload = function() {
 			"", "",
 			"00000000000", "00000000000"
 		];
-		goalpointflg = true;
 		init(entry, match, result);
-	} else {
-		var nn = hash.substring(1).split(',');
-		matchno = nn[0];
-		preflg = matchno == '1';
-		goalpointflg = !preflg;
-		
-		var match1id = nn[1];
+		return;
+	}
+	const nn = hash.substring(1).split(',');
+	matchno = nn[0];
+	preflg = matchno == '1';
+	
+	const match1id = nn[1];
 //		console.log(match1id);
-		
-		MiniDB.load("entry", function(entry) {
-			MiniDB.get("match" + matchno, match1id, function(match) {
-				MiniDB.get("result" + matchno, match1id, function(result) {
-		//			dump(data);
-		/*
+	
+	const entry = await MiniDB.load("entry");
+	const match = await MiniDB.get("match" + matchno, match1id)
+	const result0 = await MiniDB.get("result" + matchno, match1id)
+	/*
 //result
 //		match1id,category,entry1id,entry2id,score1,score2,time1,time2,flg1,flg2
 //match
 //		id,category,entry1id,entry2id,table,series
-		*/
-					// 受信した値をセット
-					if (result.length == 1) { // 無い場合、初期データ設定
-						var id1 = match[2];
-						var id2 = match[3];
-						//console.log(id1, id2)
-						if (id1 < 0 || id2 < 0) {
-							// entryidが、確定していない場合
-							MiniDB.load("result" + matchno, function(resall) {
-								var getWinner = function(matchid) {
-									var e1 = null;
-									var e2 = null;
-									var p1 = 0;
-									var p2 = 0;
-									for (var i = 1; i < resall.length; i++) {
-										var r = resall[i];
-										if (r[0] == matchid) {
-											e1 = r[2];
-											e2 = r[3];
-											p1 = parseInt(r[4]);
-											p2 = parseInt(r[5]);
-										}
-									}
-									if (e1 == null || e2 == null) {
-										alert("対戦結果データがありません");
-										window.location.href = "match2.html";
-										return 0;
-									}
-									for (var i = 1; i < resall.length; i++) {
-										var r = resall[i];
-										if (r[2] == e2 && r[3] == e1) {
-											p1 += parseInt(r[5]);
-											p2 += parseInt(r[4]);
-										}
-									}
-									return p1 > p2 ? e1 : e2;
-								};
-								let eid1 = id1
-								let eid2 = id2
-								if (eid1 < 0) {
-									eid1 = getWinner(-eid1);
-									if (eid1 == 0)
-										return;
-								}
-								if (eid2 < 0) {
-									eid2 = getWinner(-eid2);
-									if (eid2 == 0)
-										return;
-								}
-								//console.log(eid1, eid2);
-								result = [
-									match1id,
-									match[1],
-									eid1, eid2,
-									0, 0,
-									"", "",
-									"00000000000", "00000000000"
-								];
-								init(entry, match, result);
-							});
-						} else {
-							result = [
-								match1id,
-								match[1],
-								match[2], match[3],
-								0, 0,
-								"", "",
-								"00000000000", "00000000000"
-							];
-							init(entry, match, result);
-						}
-					} else {
-						init(entry, match, result);
-					}
-				});
-			});
-		});
+	*/
+	// 受信した値をセット
+	if (result0.length != 1) { // 無い場合、初期データ設定
+		init(entry, match, result0);
+		return;
 	}
+	const id1 = match[2];
+	const id2 = match[3];
+	//console.log(id1, id2)
+	if (!(id1 < 0 || id2 < 0)) {
+		const result = [
+			match1id,
+			match[1],
+			match[2], match[3],
+			0, 0,
+			"", "",
+			"00000000000", "00000000000"
+		];
+		init(entry, match, result);
+		return;
+	}
+	// entryidが、確定していない場合
+	const result = await MiniDB.load("result" + matchno);
+	const getWinner = function(matchid) {
+		const e1 = null;
+		const e2 = null;
+		const p1 = 0;
+		const p2 = 0;
+		for (let i = 1; i < resall.length; i++) {
+			const r = resall[i];
+			if (r[0] == matchid) {
+				e1 = r[2];
+				e2 = r[3];
+				p1 = parseInt(r[4]);
+				p2 = parseInt(r[5]);
+			}
+		}
+		if (e1 == null || e2 == null) {
+			alert("対戦結果データがありません");
+			window.location.href = "match2.html";
+			return 0;
+		}
+		for (let i = 1; i < resall.length; i++) {
+			const r = resall[i];
+			if (r[2] == e2 && r[3] == e1) {
+				p1 += parseInt(r[5]);
+				p2 += parseInt(r[4]);
+			}
+		}
+		return p1 > p2 ? e1 : e2;
+	};
+	let eid1 = id1
+	let eid2 = id2
+	if (eid1 < 0) {
+		eid1 = getWinner(-eid1);
+		if (eid1 == 0)
+			return;
+	}
+	if (eid2 < 0) {
+		eid2 = getWinner(-eid2);
+		if (eid2 == 0)
+			return;
+	}
+	//console.log(eid1, eid2);
+	const result2 = [
+		match1id,
+		match[1],
+		eid1, eid2,
+		0, 0,
+		"", "",
+		"00000000000", "00000000000"
+	];
+	init(entry, match, result);
 };
-var initLabels = function(){
-	for (var i = 1; i <= 2; i++) {
-		for (var j = 0; j <= lastpnt; j++) {
-			if (j < 5 || j==8  || j==11) {
-				get("p" + i + "c" + j + "l").textContent = pointLabels[j];
-			} else if (j==5){  // HTML element を保持
-				var base = get("p" + i + "c" + j + "l").innerHTML;
-				const tempEl = document.createElement('div');
-				tempEl.innerHTML = base.substr(base.indexOf('<'));
-				//var tags = base.substr(base.indexOf('<'));
-				//console.log(tags);
-				get("p" + i + "c" + j + "l").textContent = pointLabels[j];
-				get("p" + i + "c" + j + "l").appendChild(tempEl.firstElementChild);
+
+const showPoint = () => {
+	for (let i = 1; i <= 2; i++) {
+		const p = "p" + i;
+		const pnt = get("pb" + i).getPoint(p);
+		get(p).textContent = pnt;
+		
+		if (preflg) {
+			get(p + "s").textContent = "";
+		} else {
+			if (!resultbefore) {
+				get(p + "s").textContent = pnt + "+0=" + pnt;
+			} else {
+				const pntbefore = resultbefore[i == 1 ? 5 : 4 ];
+				get(p + "s").textContent = pntbefore + "+" + pnt + "=" + (parseInt(pntbefore) + pnt);
 			}
 		}
 	}
 };
-var init = function(entry, match, result) {
+const serializeChecks = (n) => {
+	const chks = get("pb" + n).querySelectorAll("input");
+	const ss = [];
+	for (let i = 0; i < chks.length; i++) {
+		ss.push(chks[i].checked ? "1" : "0");
+	}
+	return ss.join("");
+};
+const deserializeChecks = (n, s) => {
+	const ss = s.split("");
+	const chks = get("pb" + n).querySelectorAll("input");
+	for (let i = 0; i < chks.length; i++) {
+		chks[i].checked = ss[i] == 1;
+	}
+};
+const resetPointAll = function() {
+	for (let i = 1; i <= 2; i++) {
+		resetPoint(i);
+	}
+};
+const resetPoint = (n) => {
+	const chks = get("pb" + n).querySelectorAll("input");
+	for (let i = 0; i < chks.length; i++) {
+		chks[i].checked = false;
+	}
+	get("time" + n).textContent = "";
+	showPoint();
+};
+
+const initLabels = () => {
+	for (let i = 1; i <= 2; i++) {
+		const c = get("pb" + i);
+		let idx = 0;
+		for (const label of pointLabels) {
+			const div = create("div", c);
+			if (label.count == 1) {
+				const chk = create("input", div);
+				chk.type = "checkbox";
+				chk.pointlabel = label;
+				chk.id = "p" + i + "c" + idx++;
+				const lbl = create("label", div);
+				lbl.setAttribute("for", chk.id);
+				const span = create("span", lbl);
+				span.textContent = label.name + " +" + label.point;
+				chk.onchange = () => {
+					if (label.goal == "1") {
+						if (chk.checked) {
+							get("time" + i).textContent = changeTime(time.textContent);
+						} else {
+							get("time" + i).textContent = "";
+						}
+					}
+					showPoint();
+				};
+				if (label.goal == "1") {
+					const span = create("span", lbl);
+					span.id = "time" + i;
+					span.className = "goaltime";
+				}
+			} else {
+				for (let j = 0; j < label.count; j++) {
+					const chk = create("input", div);
+					chk.type = "checkbox";
+					chk.pointlabel = label;
+					chk.id = "p" + i + "c" + idx++ + "" + j;
+					const lbl = create("label", div);
+					lbl.setAttribute("for", chk.id);
+					chk.onchange = () => showPoint();
+					const span = create("span", lbl);
+					span.innerHTML = j == label.count - 1 ? label.name + " +" + label.point : "&nbsp;";
+				}
+			}
+		}
+		c.getPoint = () => {
+			const chks = c.querySelectorAll("input");
+			let pnt = 0;
+			for (let i = 0; i < chks.length; i++) {
+				if (chks[i].checked) pnt += parseInt(chks[i].pointlabel.point);
+			}
+			return pnt;
+		};
+	}
+};
+const init = async (entry, match, result) => {
 	if (preflg) {
 		init2(entry, match, result);
 	} else {
 		// 前回試合データを取得
-		MiniDB.load("result" + matchno, function(resall) {
-			for (var i = 1; i < resall.length; i++) {
-				var r = resall[i];
-				if (r[2] == result[3] && r[3] == result[2]) {
-					init2(entry, match, result, r);
-					return;
-				}
+		const resall = await MiniDB.load("result" + matchno);
+		for (let i = 1; i < resall.length; i++) {
+			const r = resall[i];
+			if (r[2] == result[3] && r[3] == result[2]) {
+				init2(entry, match, result, r);
+				return;
 			}
-			init2(entry, match, result);
-		});
+		}
+		init2(entry, match, result);
 	}
 };
-var init2 = function(entry, match, result, resultbefore) {
-	var showPoint = function() {
-		for (var i = 1; i <= 2; i++) {
-			var p = "p" + i;
-			var pnt = 0;
-			for (var j = 0; j <= lastpnt; j++) {
-				if (get(p + "c" + j).checked) {
-					//if (j == 4 || j == 10) {
-					//if (j == 4 || j == 10 || j == 7 || j == 8) { // 奥レアメタルも+2 // 2019
-					if (j == 4) { // 地球帰還のみ2点 2020
-						pnt += 2;
-					} else if (j == 5) { //  || j == 9) {
-						if (goalpointflg)
-							pnt++;
-					} else {
-						pnt++;
-					}
-				}
-			}
-			get(p).textContent = pnt;
-			
-			if (preflg) {
-				get(p + "s").textContent = "";
-			} else {
-				if (!resultbefore) {
-					get(p + "s").textContent = pnt + "+0=" + pnt;
-				} else {
-					var pntbefore = resultbefore[i == 1 ? 5 : 4 ];
-					get(p + "s").textContent = pntbefore + "+" + pnt + "=" + (parseInt(pntbefore) + pnt);
-				}
-			}
-		}
-	};
-	var changeTime = function(time) {
-		var t = time.split(":");
-		var t2 = 180 - (parseInt(t[0]) * 60 + parseInt(t[1]));
-		return Math.floor(t2 / 60) + ":" + fixnum(t2 % 60, 2);
-	};
-	
-	for (var i = 1; i <= 2; i++) {
-		var p = "p" + i;
-		for (var j = 0; j <= lastpnt; j++) {
-			if (j == 5) { // ゴール時
-				get(p + "c" + j).entryid = i;
-				get(p + "c" + j).onchange = function() {
-					if (this.checked) {
-						get("time" + this.entryid).textContent = changeTime(time.textContent);
-					} else {
-						get("time" + this.entryid).textContent = "";
-					}
-					showPoint();
-				};
-			} else {
-				get(p + "c" + j).onchange = showPoint;
-			}
-		}
-	}
-	var resetPointAll = function() {
-		for (var i = 1; i <= 2; i++) {
-			var p = "p" + i;
-			for (var j = 0; j <= lastpnt; j++) {
-				get(p + "c" + j).checked = false;
-			}
-			get("time" + i).textContent = "";
-		}
-		showPoint();
-	};
-	var resetPoint = function(n) {
-		var p = "p" + n;
-		for (var j = 0; j <= lastpnt; j++) {
-			get(p + "c" + j).checked = false;
-		}
-		get("time" + n).textContent = "";
-		showPoint();
-	};
-	p1.onclick = function() {
+const init2 = (entry, match, result, resultbefore) => {
+	p1.onclick = () => {
 		resetPoint(1);
 	};
-	p2.onclick = function() {
+	p2.onclick = () => {
 		resetPoint(2);
 	};
-	var remaint = 0;
-	var lastt = 0;
-	var timer = function() {
-		var t = new Date().getTime();
+	let remaint = 0;
+	let lastt = 0;
+	const timer = () => {
+		const t = new Date().getTime();
 		if (lastt) {
 			remaint -= t - lastt;
 		}
 		lastt = t;
-		
-//		var limitt = (6 * 60) * 1000 + (1000 - 1);
-		var dt = remaint;
+		let dt = remaint;
 		if (dt < 0)
 			dt = 0;
-		var min = Math.floor(dt / 1000 / 60);
-		var sec = Math.floor(dt / 1000 % 60);
-		var s = min + ":";
+		const min = Math.floor(dt / 1000 / 60);
+		const sec = Math.floor(dt / 1000 % 60);
+		let s = min + ":";
 		if (sec < 10)
 			s += "0";
 		s += sec;
 		time.textContent = s;
 	};
-	var tid = null;
-	var TID_STOP = {};
-	time.onmousedown = function() {
-//		baset = new Date().getTime();
+	let tid = null;
+	const TID_STOP = {};
+	time.onmousedown = () => {
 		if (tid) {
 			if (tid == TID_STOP) {
 				resetTimer();
@@ -290,32 +326,31 @@ var init2 = function(entry, match, result, resultbefore) {
 		}
 	};
 	
-	var matchtime;
-	var resetTimer = function() {
+	let matchtime;
+	const resetTimer = () => {
 		clearInterval(tid);
 		tid = null;
 		lastt = 0;
 		time.textContent = matchtime + ":00";
 		remaint = matchtime * 60 * 1000;// + 999;
 	};
-	var showMatch = function(smatch, result) {
-//		console.log(smatch);
-		var matchname = smatch[1] + smatch[4] + "-" + smatch[5];
-		var getMatch = function(s) {
+	const showMatch = (smatch, result) => {
+		const matchname = smatch[1] + smatch[4] + "-" + smatch[5];
+		const getMatch = function(s) {
 			if (s.startsWith("T")) {
 				s = Settings.getGroup("T") + s.substring(1);  // エントリー部門
 			} else if (s.startsWith("K")) {
 				s = Settings.getGroup("K") + s.substring(1);
-			}　else {
+			} else {
 				s = "";
 			}
 			return s;
 		};
 		get("match").textContent = getMatch(matchname);
-		var getTeam = function(entryid) {
-			for (var i = 1; i < entry.length; i++) {
+		const getTeam = function(entryid) {
+			for (let i = 1; i < entry.length; i++) {
 				if (entry[i][0] == entryid) {
-					let s = entry[i][2]
+					const s = entry[i][2]
 					/*
 					const n = s.indexOf('（')
 					if (n >= 0)
@@ -344,26 +379,11 @@ var init2 = function(entry, match, result, resultbefore) {
 		deserializeChecks(2, result[9]);
 		showPoint();
 	};
-	
-	var serializeChecks = function(n) {
-		var s = "";
-		var p = "p" + n;
-		for (var j = 0; j <= lastpnt; j++) {
-			s += get(p + "c" + j).checked ? "1" : "0";
-		}
-		return s;
-	};
-	var deserializeChecks = function(n, s) {
-		var p = "p" + n;
-		for (var j = 0; j <= lastpnt; j++) {
-			get(p + "c" + j).checked = s.charAt(j) == "1";
-		}
-	};
-//	10000000000
+	//	10000000000
 	
 	showMatch(match, result);
 	
-	var saveAndQuit = function() {
+	const saveAndQuit = async () => {
 		if (result[0] < 0 || !tid) {
 			window.location.href = "menu.html";
 			return;
@@ -380,25 +400,25 @@ var init2 = function(entry, match, result, resultbefore) {
 		result[8] = serializeChecks(1);
 		result[9] = serializeChecks(2);
 		
-		var  cond = true;
+		let cond = true;
 		if (result[4] == 0 && result[5] == 0) {
 			cond = confirm("双方のスコアがゼロです。対戦結果を記録しますか？");
 		}
 		if (cond) {
-			MiniDB.set("result" + matchno, result.join(","), function (res) {
-				if (res == 1) {
-					window.location.href = "match" + matchno + ".html";
-				} else {
-					alert("スコアの登録に失敗しました。リトライしてください");
-				}
-			});
+			const res = await MiniDB.set("result" + matchno, result.join(","));
+			if (res == 1) {
+				window.onbeforeunload = null;
+				window.location.href = "match" + matchno + ".html";
+			} else {
+				alert("スコアの登録に失敗しました。リトライしてください");
+			}
 		} else {
 			window.location.href = "match" + matchno + ".html";
 		}
 	};
 	
-	window.onbeforeunload = saveAndQuit;
-	prevbtn.onclick = saveAndQuit;
+	window.onbeforeunload = async () => await saveAndQuit();
+	prevbtn.onclick = async () => await saveAndQuit();
 
 
 	/*
@@ -419,227 +439,11 @@ var init2 = function(entry, match, result, resultbefore) {
 	*/
 };
 
-document.addEventListener("touchmove", function(e) {
+document.addEventListener("touchmove", (e) => {
 	e.preventDefault();
 }, false);
 
+main();
 </script>
-<style>
-body {
-	background-color: black;
-	color: white;
-	margin: 0px;
-	padding: 0px;
-	font-family: sans-serif;
-	text-align: center;
-}
-.team {
-	display: inline-block;
-	font-size: 3.4vw;
-	width: 46vw;
-	height: 4.2vw;
-	text-align: center;
-	x-background-color: red;
-	margin: 0.2vw auto 0.2vw auto;
-	padding: 0 1vw;
-	white-space: nowrap;
-	word-wrap: break-word;
-	overflow: hidden;
-}
-.point {
-	display: inline-block;
-	font-size: 11vw;
-	width: 44vw;
-	x-background-color: red;
-	height: 11vw;
-	line-height: 1em;
-	text-align: center;
-	margin: 0vw auto 0vw auto;
-	padding: 0 2vw;
-}
-.pointsum {
-	display: inline-block;
-	width: 42vw;
-	height: 2vw;
-	font-size: 4vw;
-	line-height: 1em;
-	letter-spacing: 0.5em;
-	text-align: center;
-	margin: 0.5vw auto 0vw auto;
-	padding: 0 2vw;
-}
-.time {
-	display: inline-block;
-	font-size: 8vw;
-	line-height: 1em;
-	x-background-color: red;
-	text-align: center;
-	width: 100%;
-	margin: .2vw auto;
-}
-.ctable {
-	width: 100%;
-}
-.ctable td {
-	text-align: center;
-	width: 33%;
-}
-.ctable td:first-child {
-	text-align: left;
-}
-.ctable td:nth-child(3) {
-	text-align: right;
-}
-.match {
-	x-position: absolute;
-	display: inline-block;
-	right: 1vw;
-	top: 1em;
-	padding-right: 0.5vw;
-	x-top: -1em;
-	font-size: 3.5vw;
-	line-height: 1em;
-	x-background-color: red;
-	text-align: right;
-	x-width: 10em; /*100%; */
-	margin: 0vw auto;
-}
-.btn {
-	font-size: 7vw;
-	padding-left: 0.5vw;
-	color: #aaa;
-	display: inline-block;
-	x-position: absolute;
-	x-padding: 0.5vw 0.5vw 0.5vw 0.5vw;
-}
-#prevbtn {
-	left: 1vw;
-}
-#next {
-	right: 1vw;
-}
-.pointborder {
-	display: inline-block;
-	border: 0.3vw gray solid;
-	margin: .5vw;
-	padding: 0.5vw;
-	width: 45vw;
-}
-.pointlbl {
-	display: block;
-	text-align: left;
-}
-.chkbox {
-	margin: 0 0 10px 20px;
-}
-label {
-	display: inline-block;
-	position: relative;
-	padding: 0.5vw 0.5vw 0.5vw 5vw;
-	font-size: 2.6vw;
-	line-height: 2.6vw;
-	cursor: pointer;
-}
-label:before {
-	display: inline-block;
-	position: absolute;
-	left: 0;
-	content: '';
-	width: 3vw;
-	height: 3vw;
-	background-color: white;
-	box-shadow: inset 1px 2px 3px 0px #000;
-	border-radius: 6px 6px 6px 6px;
-}
-input[type=checkbox] {
-	display: none;
-}
-input[type=checkbox]:checked + label:before {
-	content: '\2713';
-	font-size: 3vw;
-	color: #fff;
-	background-color: #17f;
-}
-.rare {
-	text-align: left;
-}
-</style>
-</head>
-<body>
-
-<span class=team id=t1>チームA</span>
-<span class=team id=t2>チームB</span>
-<span class=point id=p1>0</span>
-<span class=point id=p2>0</span>
-<span class=pointsum id=p1s>0+0=0</span>
-<span class=pointsum id=p2s>0+0=0</span>
-
-<table class=ctable><tr>
-<td><span class=btn id=prevbtn>&lt;&lt;</span></td>
-<!--<span class=btn id=next>&gt;</span>-->
-<td><span class=time id=time>3:00</span></td>
-<td><span class=match id=match>T12-1</span></td>
-</table>
-
-<!--
-得点
-地球をでた	1
-ミルキーウェイ 1
-惑星ゾーン	1
-たまご	1
-地球ゾーン帰還	2
-ゴール	1	本線のみ、予選ではタイム表示、スコア加算なし？
-レアメタル	+1 x 2, +2 x1（奥）
-激レアメタル	1	本線のみ
-歩行タイプボーナス	2	ゴール時
-
-リセット
--->
-
-<div class=pointborder id=pb1>
-<input type=checkbox id=p1c0><label class=pointlbl id=p1c0l for=p1c0>地球出発 +1</label>
-<input type=checkbox id=p1c1><label class=pointlbl id=p1c1l for=p1c1>ミルキーウェイ +1</label>
-<input type=checkbox id=p1c2><label class=pointlbl id=p1c2l for=p1c2>惑星到着 +1</label>
-<input type=checkbox id=p1c3><label class=pointlbl id=p1c3l for=p1c3>たまごおいた +1</label>
-<input type=checkbox id=p1c4><label class=pointlbl id=p1c4l for=p1c4>地球帰還 +2</label>
-<input type=checkbox id=p1c5><label class=pointlbl id=p1c5l for=p1c5>先ゴール <span id=time1></span></label>
-<div class=rare>
-<input type=checkbox id=p1c6><label class=pointlblr id=p1c6l for=p1c6>&nbsp;</label>
-<input type=checkbox id=p1c7><label class=pointlblr id=p1c7l for=p1c7>&nbsp;</label>
-<input type=checkbox id=p1c8><label class=pointlblr id=p1c8l for=p1c8>レアメタル +1</label>
-</div>
-<div class=rare>
-<input type=checkbox id=p1c9><label class=pointlblr id=p1c9l for=p1c9>&nbsp;</label>
-<input type=checkbox id=p1c10><label class=pointlblr id=p1c10l for=p1c10>&nbsp;</label>
-<input type=checkbox id=p1c11><label class=pointlblr id=p1c11l for=p1c11>激レアメタル +1</label>
-</div>
-<!--
-<input type=checkbox id=p1c10><label class=pointlbl for=p1c10>歩行ボーナス ゴール時+2</label>
--->
-</div>
-
-<div class=pointborder id=pb2>
-<input type=checkbox id=p2c0><label class=pointlbl id=p2c0l for=p2c0>地球出発 +1</label>
-<input type=checkbox id=p2c1><label class=pointlbl id=p2c1l for=p2c1>ミルキーウェイ +1</label>
-<input type=checkbox id=p2c2><label class=pointlbl id=p2c2l for=p2c2>惑星到着 +1</label>
-<input type=checkbox id=p2c3><label class=pointlbl id=p2c3l for=p2c3>たまごおいた +1</label>
-<input type=checkbox id=p2c4><label class=pointlbl id=p2c4l for=p2c4>地球帰還 +2</label>
-<input type=checkbox id=p2c5><label class=pointlbl id=p2c5l for=p2c5>先ゴール <span id=time2></span></label>
-<div class=rare>
-<input type=checkbox id=p2c6><label class=pointlblr id=p2c6l for=p2c6>&nbsp;</label>
-<input type=checkbox id=p2c7><label class=pointlblr id=p2c7l for=p2c7>&nbsp;</label>
-<input type=checkbox id=p2c8><label class=pointlblr id=p2c8l for=p2c8>レアメタル +1</label>
-</div>
-<div class=rare>
-<input type=checkbox id=p2c9><label class=pointlblr id=p2c9l for=p2c9>&nbsp;</label>
-<input type=checkbox id=p2c10><label class=pointlblr id=p2c10l for=p2c10>&nbsp;</label>
-<input type=checkbox id=p2c11><label class=pointlblr id=p2c11l for=p2c11>激レアメタル +1</label>
-</div>
-<!--
-<input type=checkbox id=p2c10><label class=pointlbl for=p2c10>歩行ボーナス ゴール時+2</label>
--->
-</div>
-
-
 </body>
 </html>

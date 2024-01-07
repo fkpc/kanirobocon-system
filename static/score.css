@@ -1,0 +1,140 @@
+body {
+	background-color: black;
+	color: white;
+	margin: 0px;
+	padding: 0px;
+	font-family: sans-serif;
+	text-align: center;
+}
+.team {
+	display: inline-block;
+	font-size: 3.4vw;
+	width: 46vw;
+	height: 4.2vw;
+	text-align: center;
+	x-background-color: red;
+	margin: 0.2vw auto 0.2vw auto;
+	padding: 0 1vw;
+	white-space: nowrap;
+	word-wrap: break-word;
+	overflow: hidden;
+}
+.point {
+	display: inline-block;
+	font-size: 11vw;
+	width: 44vw;
+	x-background-color: red;
+	height: 11vw;
+	line-height: 1em;
+	text-align: center;
+	margin: 0vw auto 0vw auto;
+	padding: 0 2vw;
+}
+.pointsum {
+	display: inline-block;
+	width: 42vw;
+	height: 2vw;
+	font-size: 4vw;
+	line-height: 1em;
+	letter-spacing: 0.5em;
+	text-align: center;
+	margin: 0.5vw auto 0vw auto;
+	padding: 0 2vw;
+}
+.time {
+	display: inline-block;
+	font-size: 8vw;
+	line-height: 1em;
+	x-background-color: red;
+	text-align: center;
+	width: 100%;
+	margin: .2vw auto;
+}
+.ctable {
+	width: 100%;
+}
+.ctable td {
+	text-align: center;
+	width: 33%;
+}
+.ctable td:first-child {
+	text-align: left;
+}
+.ctable td:nth-child(3) {
+	text-align: right;
+}
+.match {
+	x-position: absolute;
+	display: inline-block;
+	right: 1vw;
+	top: 1em;
+	padding-right: 0.5vw;
+	x-top: -1em;
+	font-size: 3.5vw;
+	line-height: 1em;
+	x-background-color: red;
+	text-align: right;
+	x-width: 10em; /*100%; */
+	margin: 0vw auto;
+}
+.btn {
+	font-size: 7vw;
+	padding-left: 0.5vw;
+	color: #aaa;
+	display: inline-block;
+	x-position: absolute;
+	x-padding: 0.5vw 0.5vw 0.5vw 0.5vw;
+}
+#prevbtn {
+	left: 1vw;
+}
+#next {
+	right: 1vw;
+}
+.pointborder {
+	display: inline-block;
+	border: 0.3vw gray solid;
+	margin: .5vw;
+	padding: 0.5vw;
+	width: 45vw;
+  text-align: left;
+}
+.pointlbl {
+	display: block;
+	text-align: left;
+}
+.chkbox {
+	margin: 0 0 10px 20px;
+}
+label {
+	display: inline-block;
+	position: relative;
+	padding: 0.5vw 0.5vw 0.5vw 5vw;
+	font-size: 2.6vw;
+	line-height: 2.6vw;
+	cursor: pointer;
+}
+label .goaltime {
+  padding-left: 1em;
+}
+
+label:before {
+	display: inline-block;
+	position: absolute;
+	left: 0;
+	content: '';
+	width: 3vw;
+	height: 3vw;
+	background-color: white;
+	box-shadow: inset 1px 2px 3px 0px #000;
+	border-radius: 6px 6px 6px 6px;
+}
+input[type=checkbox] {
+	display: none;
+}
+input[type=checkbox]:checked + label:before {
+	content: '\2713';
+	font-size: 3vw;
+	color: #fff;
+	background-color: #17f;
+}

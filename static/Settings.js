@@ -12,12 +12,12 @@ class Settings {
 	static getNumberOfMatch(category) {
 		return {
             "T" : 8,
-            "K" : 8,
-            "O" : 2,
+            "K" : 4,
+            "O" : 8,
         }[category];
 	}
     static getNumOfYosenStages() {
-        return 3;
+        return 2;
     }
 	static getPointLabels(){
 		return [
